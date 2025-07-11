@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  lint-and-test:
+    name: Lint, Format & Test
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 22.x]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run ESLint
+        run: pnpm run lint
+
+      - name: Check Prettier formatting
+        run: pnpm run format:check
+
+      - name: Run tests
+        run: pnpm run test
+
+      - name: Generate coverage report (Node.js 22 only)
+        if: matrix.node-version == '22.x'
+        run: pnpm run test:coverage
+
+      - name: Build project
+        run: pnpm run build
+
+      - name: Upload coverage to Codecov (Node.js 22 only)
+        if: matrix.node-version == '22.x'
+        uses: codecov/codecov-action@v5
+        with:
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+
+  publish-check:
+    name: Publish Check
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check if package can be published
+        run: pnpm run prepublishOnly
