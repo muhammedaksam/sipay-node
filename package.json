@@ -29,7 +29,11 @@
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"examples/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\" \"examples/**/*.ts\"",
     "clean": "rimraf dist",
-    "prepublishOnly": "pnpm run clean && pnpm run build"
+    "prepublishOnly": "pnpm run clean && pnpm run build",
+    "check-all": "pnpm run lint && pnpm run format:check && pnpm run test",
+    "version:show": "npx tsx scripts/version-helper.ts show",
+    "version:update": "npx tsx scripts/version-helper.ts update",
+    "version:bump": "npx tsx scripts/version-helper.ts update"
   },
   "keywords": [
     "sipay",
@@ -62,6 +66,7 @@
     "rimraf": "^6.0.1",
     "ts-jest": "^29.4.0",
     "ts-node": "^10.9.2",
+    "tsx": "^4.20.3",
     "typescript": "^5.8.3"
   },
   "dependencies": {
