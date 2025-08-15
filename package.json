@@ -55,22 +55,22 @@
   },
   "homepage": "https://github.com/muhammedaksam/sipay-node#readme",
   "devDependencies": {
-    "@eslint/js": "^9.30.1",
+    "@eslint/js": "^9.33.0",
     "@types/jest": "^30.0.0",
-    "@types/node": "^24.0.13",
-    "@typescript-eslint/eslint-plugin": "^8.36.0",
-    "@typescript-eslint/parser": "^8.36.0",
-    "eslint": "^9.30.1",
-    "jest": "^30.0.4",
+    "@types/node": "^24.3.0",
+    "@typescript-eslint/eslint-plugin": "^8.39.1",
+    "@typescript-eslint/parser": "^8.39.1",
+    "eslint": "^9.33.0",
+    "jest": "^30.0.5",
     "prettier": "^3.6.2",
     "rimraf": "^6.0.1",
-    "ts-jest": "^29.4.0",
+    "ts-jest": "^29.4.1",
     "ts-node": "^10.9.2",
-    "tsx": "^4.20.3",
-    "typescript": "^5.8.3"
+    "tsx": "^4.20.4",
+    "typescript": "^5.9.2"
   },
   "dependencies": {
-    "axios": "^1.10.0"
+    "axios": "^1.11.0"
   },
   "engines": {
     "node": ">=18"
