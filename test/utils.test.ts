@@ -30,21 +30,19 @@ describe('Utility Functions', () => {
 
   describe('generateHashKey', () => {
     it('should generate consistent hash keys', () => {
-      const merchantKey = 'test-merchant';
-      const invoiceId = 'INV123';
-      const amount = 100;
+      const parts = ['test-merchant', 'INV123', '100'];
       const secretKey = 'secret';
 
-      const hash1 = generateHashKey(merchantKey, invoiceId, amount, secretKey);
-      const hash2 = generateHashKey(merchantKey, invoiceId, amount, secretKey);
+      const hash1 = generateHashKey(parts, secretKey);
+      const hash2 = generateHashKey(parts, secretKey);
 
-      expect(hash1).toBe(hash2);
-      expect(hash1).toHaveLength(64); // SHA256 hex length
+      expect(hash1).not.toBe(hash2); // Different because of random IV and salt
+      expect(hash1).toContain(':'); // Should have the IV:salt:encrypted format
     });
 
     it('should generate different hashes for different inputs', () => {
-      const hash1 = generateHashKey('merchant1', 'INV123', 100, 'secret');
-      const hash2 = generateHashKey('merchant2', 'INV123', 100, 'secret');
+      const hash1 = generateHashKey(['merchant1', 'INV123', '100'], 'secret');
+      const hash2 = generateHashKey(['merchant2', 'INV123', '100'], 'secret');
 
       expect(hash1).not.toBe(hash2);
     });

@@ -30,6 +30,7 @@ describe('Payments Resource', () => {
     // Mock the config property that addMerchantKey accesses
     (mockHttpClient as any)['config'] = {
       merchantKey: 'test_merchant_key',
+      appSecret: 'test_app_secret',
     };
 
     payments = new Payments(mockHttpClient);

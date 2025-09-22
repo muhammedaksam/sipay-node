@@ -57,3 +57,4 @@ export { Payments } from './resources/payments';
 export { Recurring } from './resources/recurring';
 export { BrandedSolution } from './resources/branded-solution';
 export { Commissions } from './resources/commissions';
+export * from './utils';
