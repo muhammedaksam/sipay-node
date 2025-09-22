@@ -24,6 +24,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "test:integration": "npx tsx test/integration/test-runner.ts",
+    "test:final": "npx tsx examples/final-payment-test.ts",
     "lint": "eslint src test examples --ext .ts",
     "lint:fix": "eslint src test examples --ext .ts --fix",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"examples/**/*.ts\"",

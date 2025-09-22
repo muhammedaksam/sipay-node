@@ -9,16 +9,30 @@ import {
   OrderStatusRequest,
   RefundRequest,
 } from '../types';
+import { generatePaymentHashKey, generateStatusHashKey } from '../utils';
 
 export class Payments extends SipayResource {
   /**
-   * Process a 2D payment (direct payment without 3D Secure)
+   * Make a 2D payment (without 3D Secure authentication)
    */
   async pay2D(
-    paymentData: Omit<Payment2DRequest, 'merchant_key'>,
+    paymentData: Omit<Payment2DRequest, 'merchant_key' | 'hash_key'>,
     options?: RequestOptions
   ): Promise<SipayApiResponse> {
     const data = this.addMerchantKey(paymentData);
+
+    // Generate hash key for payment
+    const hashKey = generatePaymentHashKey(
+      data.total,
+      data.installments_number || 1,
+      data.currency_code,
+      this.client['config'].merchantKey,
+      data.invoice_id,
+      this.client['config'].appSecret
+    );
+
+    data.hash_key = hashKey;
+
     return this.post('/api/paySmart2D', data, options);
   }
 
@@ -52,10 +66,20 @@ export class Payments extends SipayResource {
    * Check the status of a payment
    */
   async checkStatus(
-    statusData: Omit<OrderStatusRequest, 'merchant_key'>,
+    statusData: Omit<OrderStatusRequest, 'merchant_key' | 'hash_key'>,
     options?: RequestOptions
   ): Promise<SipayApiResponse> {
     const data = this.addMerchantKey(statusData);
+
+    // Generate hash key for status check
+    const hashKey = generateStatusHashKey(
+      data.invoice_id,
+      this.client['config'].merchantKey,
+      this.client['config'].appSecret
+    );
+
+    data.hash_key = hashKey;
+
     return this.post('/api/checkstatus', data, options);
   }
 
