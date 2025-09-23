@@ -12,6 +12,11 @@ import {
   InstallmentsResponse,
   GetTokenRequest,
   TokenResponse,
+  Payment2DResponse,
+  Payment3DResponse,
+  PaymentStatusResponse,
+  RefundResponse,
+  ConfirmPaymentResponse,
 } from '../types';
 import {
   generatePaymentHashKey,
@@ -26,7 +31,7 @@ export class Payments extends SipayResource {
   async pay2D(
     paymentData: Omit<Payment2DRequest, 'merchant_key' | 'hash_key'>,
     options?: RequestOptions
-  ): Promise<SipayApiResponse> {
+  ): Promise<SipayApiResponse<Payment2DResponse>> {
     const data = this.addMerchantKey(paymentData) as Payment2DRequest;
 
     // Generate hash key for payment verification
@@ -51,7 +56,7 @@ export class Payments extends SipayResource {
   async pay3D(
     paymentData: Omit<Payment3DRequest, 'merchant_key'>,
     options?: RequestOptions
-  ): Promise<SipayApiResponse> {
+  ): Promise<SipayApiResponse<Payment3DResponse>> {
     const data = this.addMerchantKey(paymentData);
     return this.postForm('/api/paySmart3D', data, options);
   }
@@ -76,7 +81,7 @@ export class Payments extends SipayResource {
   async checkStatus(
     statusData: Omit<OrderStatusRequest, 'merchant_key' | 'hash_key'>,
     options?: RequestOptions
-  ): Promise<SipayApiResponse> {
+  ): Promise<SipayApiResponse<PaymentStatusResponse>> {
     const data = this.addMerchantKey(statusData);
 
     // Generate hash key for status check
@@ -97,7 +102,7 @@ export class Payments extends SipayResource {
   async confirmPayment(
     confirmData: Omit<ConfirmPaymentRequest, 'merchant_key' | 'hash_key'>,
     options?: RequestOptions
-  ): Promise<SipayApiResponse> {
+  ): Promise<SipayApiResponse<ConfirmPaymentResponse>> {
     const data = this.addMerchantKey(confirmData) as ConfirmPaymentRequest;
 
     // Generate hash key for payment confirmation
@@ -119,7 +124,7 @@ export class Payments extends SipayResource {
   async refund(
     refundData: Omit<RefundRequest, 'merchant_key'>,
     options?: RequestOptions
-  ): Promise<SipayApiResponse> {
+  ): Promise<SipayApiResponse<RefundResponse>> {
     const data = this.addMerchantKey(refundData);
     return this.post('/api/refund', data, options);
   }
@@ -150,7 +155,7 @@ export class Payments extends SipayResource {
   async pay(
     paymentData: Omit<Payment2DRequest, 'merchant_key'>,
     options?: RequestOptions
-  ): Promise<SipayApiResponse> {
+  ): Promise<SipayApiResponse<Payment2DResponse>> {
     const data = this.addMerchantKey(paymentData);
     return this.post('/api/pay', data, options);
   }

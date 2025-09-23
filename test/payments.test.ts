@@ -15,6 +15,66 @@ describe('Payments Resource', () => {
   let payments: Payments;
   let mockHttpClient: jest.Mocked<SipayHttpClient>;
 
+  // Helper function to create complete 2D payment data
+  const create2DPaymentData = (overrides?: Partial<Omit<Payment2DRequest, 'merchant_key'>>) => ({
+    cc_holder_name: 'John Doe',
+    cc_no: '4111111111111111',
+    expiry_month: '12',
+    expiry_year: '2025',
+    cvv: '123',
+    currency_code: 'TRY',
+    invoice_id: 'INV123',
+    invoice_description: 'Test payment',
+    total: 100.0,
+    installments_number: 1,
+    cancel_url: 'https://example.com/cancel',
+    return_url: 'https://example.com/return',
+    ip: '127.0.0.1',
+    order_type: 'sale',
+    items: [
+      {
+        name: 'Test Item',
+        price: 100.0,
+        qnantity: 1,
+        description: 'Test description',
+      },
+    ],
+    name: 'John',
+    surname: 'Doe',
+    ...overrides,
+  });
+
+  // Helper function to create complete 3D payment data
+  const create3DPaymentData = (overrides?: Partial<Omit<Payment3DRequest, 'merchant_key'>>) => ({
+    cc_holder_name: 'John Doe',
+    cc_no: '4111111111111111',
+    expiry_month: '12',
+    expiry_year: '2025',
+    cvv: '123',
+    currency_code: 'TRY',
+    invoice_id: 'INV123',
+    invoice_description: 'Test payment',
+    total: 100.0,
+    installments_number: 1,
+    cancel_url: 'https://example.com/cancel',
+    return_url: 'https://example.com/return',
+    order_type: 'sale',
+    bill_email: 'test@example.com',
+    bill_phone: '+901234567890',
+    response_method: 'POST',
+    items: [
+      {
+        name: 'Test Item',
+        price: 100.0,
+        qnantity: 1,
+        description: 'Test description',
+      },
+    ],
+    name: 'John',
+    surname: 'Doe',
+    ...overrides,
+  });
+
   beforeEach(() => {
     mockHttpClient = new SipayHttpClient({
       appId: 'test_app_id',
@@ -38,28 +98,7 @@ describe('Payments Resource', () => {
 
   describe('pay2D', () => {
     it('should make 2D payment request', async () => {
-      const paymentData: Omit<Payment2DRequest, 'merchant_key'> = {
-        cc_holder_name: 'John Doe',
-        cc_no: '4111111111111111',
-        expiry_month: '12',
-        expiry_year: '2025',
-        cvv: '123',
-        currency_code: 'TRY',
-        invoice_id: 'INV123',
-        invoice_description: 'Test payment',
-        total: 100.0,
-        installments_number: 1,
-        items: [
-          {
-            name: 'Test Item',
-            price: 100.0,
-            qnantity: 1,
-            description: 'Test description',
-          },
-        ],
-        name: 'John',
-        surname: 'Doe',
-      };
+      const paymentData = create2DPaymentData();
 
       const mockResponse = {
         status_code: 100,
@@ -83,28 +122,7 @@ describe('Payments Resource', () => {
     });
 
     it('should handle payment errors', async () => {
-      const paymentData: Omit<Payment2DRequest, 'merchant_key'> = {
-        cc_holder_name: 'John Doe',
-        cc_no: '4111111111111111',
-        expiry_month: '12',
-        expiry_year: '2025',
-        cvv: '123',
-        currency_code: 'TRY',
-        invoice_id: 'INV123',
-        invoice_description: 'Test payment',
-        total: 100.0,
-        installments_number: 1,
-        items: [
-          {
-            name: 'Test Item',
-            price: 100.0,
-            qnantity: 1,
-            description: 'Test description',
-          },
-        ],
-        name: 'John',
-        surname: 'Doe',
-      };
+      const paymentData = create2DPaymentData();
 
       const mockError = new Error('Payment failed');
       mockHttpClient.post.mockRejectedValue(mockError);
@@ -115,28 +133,7 @@ describe('Payments Resource', () => {
 
   describe('pay3D', () => {
     it('should make 3D payment request', async () => {
-      const paymentData: Omit<Payment3DRequest, 'merchant_key'> = {
-        cc_holder_name: 'John Doe',
-        cc_no: '4111111111111111',
-        expiry_month: '12',
-        expiry_year: '2025',
-        cvv: '123',
-        currency_code: 'TRY',
-        invoice_id: 'INV123',
-        invoice_description: 'Test payment',
-        total: 100.0,
-        installments_number: 1,
-        items: [
-          {
-            name: 'Test Item',
-            price: 100.0,
-            qnantity: 1,
-            description: 'Test description',
-          },
-        ],
-        name: 'John',
-        surname: 'Doe',
-      };
+      const paymentData = create3DPaymentData();
 
       const mockResponse = {
         status_code: 100,
@@ -249,17 +246,7 @@ describe('Payments Resource', () => {
 
   describe('pay', () => {
     it('should make payment request', async () => {
-      const paymentData: Omit<Payment2DRequest, 'merchant_key'> = {
-        cc_holder_name: 'John Doe',
-        cc_no: '4111111111111111',
-        expiry_month: '12',
-        expiry_year: '2025',
-        cvv: '123',
-        currency_code: 'TRY',
-        invoice_id: 'INV123',
-        invoice_description: 'Test payment',
-        total: 100.0,
-        installments_number: 1,
+      const paymentData = create2DPaymentData({
         name: 'John',
         surname: 'Doe',
         items: [
@@ -267,11 +254,11 @@ describe('Payments Resource', () => {
             name: 'Test Product',
             price: 100.0,
             qnantity: 1,
-            description: 'Test product description',
+            description: 'Test Product',
           },
         ],
-        hash_key: 'test_hash',
-      };
+        hash_key: 'test_hash_key',
+      });
 
       const mockResponse = {
         status_code: 100,
@@ -292,22 +279,10 @@ describe('Payments Resource', () => {
     });
 
     it('should make payment request with options', async () => {
-      const paymentData: Omit<Payment2DRequest, 'merchant_key'> = {
-        cc_holder_name: 'John Doe',
-        cc_no: '4111111111111111',
-        expiry_month: '12',
-        expiry_year: '2025',
-        cvv: '123',
-        currency_code: 'TRY',
-        invoice_id: 'INV123',
-        invoice_description: 'Test payment',
-        total: 100.0,
-        installments_number: 1,
-        name: 'John',
-        surname: 'Doe',
+      const paymentData = create2DPaymentData({
         items: [],
         hash_key: 'test_hash',
-      };
+      });
 
       const options = { timeout: 5000 };
       const mockResponse = {

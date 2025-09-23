@@ -32,6 +32,10 @@ async function basicPaymentExample() {
       ],
       name: 'John',
       surname: 'Doe',
+      return_url: 'https://example.com/success',
+      cancel_url: 'https://example.com/cancel',
+      order_type: 'sale',
+      ip: '127.0.0.1',
     });
 
     console.log('2D Payment Result:', payment2D);

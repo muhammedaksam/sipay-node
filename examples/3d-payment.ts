@@ -30,6 +30,13 @@ async function threeDPaymentExample() {
       ],
       name: 'John',
       surname: 'Doe',
+      return_url: 'https://example.com/success',
+      cancel_url: 'https://example.com/cancel',
+      order_type: 'sale',
+      bill_email: 'john@example.com',
+      bill_phone: '+905001234567',
+      response_method: 'POST',
+      ip: '127.0.0.1',
     });
 
     console.log('3D Payment Result:', payment3D);

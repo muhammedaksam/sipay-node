@@ -84,7 +84,7 @@ describe('Commissions Resource', () => {
 
         const result = await commissions.getCommissions(commissionData);
 
-        expect(result.data.currency_code).toBe(currency);
+        expect(result.data?.currency_code).toBe(currency);
       }
     });
   });

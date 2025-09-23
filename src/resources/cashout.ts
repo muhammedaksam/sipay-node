@@ -1,5 +1,5 @@
 import { SipayResource } from './base';
-import { SipayApiResponse, RequestOptions } from '../types';
+import { SipayApiResponse, RequestOptions, CashoutResponse } from '../types';
 
 export interface CashoutToBankRequest {
   merchant_key: string;
@@ -28,7 +28,7 @@ export class Cashout extends SipayResource {
   async toBank(
     cashoutData: Omit<CashoutToBankRequest, 'merchant_key' | 'hash_key'>,
     options?: RequestOptions
-  ): Promise<SipayApiResponse> {
+  ): Promise<SipayApiResponse<CashoutResponse>> {
     const data = this.addMerchantKey(cashoutData) as CashoutToBankRequest;
 
     // TODO: Implement hash generation for cashout endpoint

@@ -53,10 +53,12 @@ describe('Sipay SDK', () => {
       expect(typeof sipay.payments.checkStatus).toBe('function');
       expect(typeof sipay.payments.refund).toBe('function');
 
-      expect(typeof sipay.recurring.query).toBe('function');
+      // Note: recurring functionality is now handled through payments resource
+      // with recurring parameters, not separate methods
+      expect(sipay.recurring).toBeDefined();
 
       expect(typeof sipay.brandedSolution.createPaymentLink).toBe('function');
-      expect(typeof sipay.brandedSolution.checkStatus).toBe('function');
+      // Note: branded solution status is checked via payments.checkStatus()
 
       expect(typeof sipay.commissions.getCommissions).toBe('function');
     });

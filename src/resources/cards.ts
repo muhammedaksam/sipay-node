@@ -1,5 +1,13 @@
 import { SipayResource } from './base';
-import { SipayApiResponse, RequestOptions } from '../types';
+import {
+  SipayApiResponse,
+  RequestOptions,
+  SaveCardResponse,
+  CardTokensResponse,
+  EditCardResponse,
+  DeleteCardResponse,
+  CardPaymentResponse,
+} from '../types';
 import { generateHashKey, generatePaymentHashKey } from '../utils';
 
 export interface SaveCardRequest {
@@ -61,7 +69,7 @@ export class Cards extends SipayResource {
   async saveCard(
     cardData: Omit<SaveCardRequest, 'merchant_key' | 'hash_key'>,
     options?: RequestOptions
-  ): Promise<SipayApiResponse> {
+  ): Promise<SipayApiResponse<SaveCardResponse>> {
     const data = this.addMerchantKey(cardData) as SaveCardRequest;
 
     // Generate hash key for save card
@@ -85,7 +93,7 @@ export class Cards extends SipayResource {
   async getCardTokens(
     customerData: Omit<GetCardTokensRequest, 'merchant_key'>,
     options?: RequestOptions
-  ): Promise<SipayApiResponse> {
+  ): Promise<SipayApiResponse<CardTokensResponse>> {
     const data = this.addMerchantKey(customerData);
     return this.get('/api/getCardTokens', data, options);
   }
@@ -96,7 +104,7 @@ export class Cards extends SipayResource {
   async editCard(
     cardData: Omit<EditCardRequest, 'merchant_key' | 'hash_key'>,
     options?: RequestOptions
-  ): Promise<SipayApiResponse> {
+  ): Promise<SipayApiResponse<EditCardResponse>> {
     const data = this.addMerchantKey(cardData) as EditCardRequest;
 
     // Generate hash key for edit card
@@ -113,7 +121,7 @@ export class Cards extends SipayResource {
   async deleteCard(
     cardData: Omit<DeleteCardRequest, 'merchant_key' | 'hash_key'>,
     options?: RequestOptions
-  ): Promise<SipayApiResponse> {
+  ): Promise<SipayApiResponse<DeleteCardResponse>> {
     const data = this.addMerchantKey(cardData) as DeleteCardRequest;
 
     // Generate hash key for delete card
@@ -130,7 +138,7 @@ export class Cards extends SipayResource {
   async payByCardToken(
     paymentData: Omit<PayByCardTokenRequest, 'merchant_key' | 'hash_key'>,
     options?: RequestOptions
-  ): Promise<SipayApiResponse> {
+  ): Promise<SipayApiResponse<CardPaymentResponse>> {
     const data = this.addMerchantKey(paymentData) as PayByCardTokenRequest;
 
     // Generate hash key for card token payment
@@ -154,7 +162,7 @@ export class Cards extends SipayResource {
   async payByCardTokenNonSecure(
     paymentData: Omit<PayByCardTokenRequest, 'merchant_key' | 'hash_key'>,
     options?: RequestOptions
-  ): Promise<SipayApiResponse> {
+  ): Promise<SipayApiResponse<CardPaymentResponse>> {
     const data = this.addMerchantKey(paymentData) as PayByCardTokenRequest;
 
     // Generate hash key for non-secure card token payment

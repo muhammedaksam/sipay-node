@@ -1,5 +1,18 @@
 import { SipayResource } from './base';
-import { SipayApiResponse, RequestOptions } from '../types';
+import {
+  SipayApiResponse,
+  RequestOptions,
+  SubMerchantAddResponse,
+  SubMerchantEditResponse,
+  SubMerchantDeleteResponse,
+  SubMerchantListResponse,
+  SubMerchantPFAddResponse,
+  SubMerchantPFDeleteResponse,
+  SubMerchantPFViewResponse,
+  SubMerchantPFListResponse,
+  SubMerchantPayoutResponse,
+} from '../types';
+import { generateHashKey } from '../utils';
 
 export interface AddSubMerchantRequest {
   merchant_key: string;
@@ -94,6 +107,16 @@ export interface ListSubMerchantPFRequest {
   merchant_key: string;
 }
 
+export interface PayoutRequest {
+  merchant_key: string;
+  payout_data: Array<{
+    sub_merchant_id: string;
+    amount: string;
+    currency_code: string;
+  }>;
+  hash_key: string;
+}
+
 export class SubMerchant extends SipayResource {
   /**
    * Add a new standard sub merchant
@@ -101,7 +124,7 @@ export class SubMerchant extends SipayResource {
   async add(
     subMerchantData: Omit<AddSubMerchantRequest, 'merchant_key'>,
     options?: RequestOptions
-  ): Promise<SipayApiResponse> {
+  ): Promise<SipayApiResponse<SubMerchantAddResponse>> {
     const data = this.addMerchantKey(subMerchantData);
     return this.post('/api/sub-merchant/add', data, options);
   }
@@ -112,7 +135,7 @@ export class SubMerchant extends SipayResource {
   async edit(
     editData: Omit<EditSubMerchantRequest, 'merchant_key'>,
     options?: RequestOptions
-  ): Promise<SipayApiResponse> {
+  ): Promise<SipayApiResponse<SubMerchantEditResponse>> {
     const data = this.addMerchantKey(editData);
     return this.post('/api/sub-merchant/edit', data, options);
   }
@@ -123,7 +146,7 @@ export class SubMerchant extends SipayResource {
   async delete(
     deleteData: Omit<DeleteSubMerchantRequest, 'merchant_key'>,
     options?: RequestOptions
-  ): Promise<SipayApiResponse> {
+  ): Promise<SipayApiResponse<SubMerchantDeleteResponse>> {
     const data = this.addMerchantKey(deleteData);
     return this.post('/api/sub-merchant/delete', data, options);
   }
@@ -134,7 +157,7 @@ export class SubMerchant extends SipayResource {
   async list(
     listData?: Omit<ListSubMerchantRequest, 'merchant_key'>,
     options?: RequestOptions
-  ): Promise<SipayApiResponse> {
+  ): Promise<SipayApiResponse<SubMerchantListResponse>> {
     const data = this.addMerchantKey(listData || {});
     return this.post('/api/sub-merchant/list', data, options);
   }
@@ -145,7 +168,7 @@ export class SubMerchant extends SipayResource {
   async addPF(
     subMerchantData: Omit<AddSubMerchantPFRequest, 'merchant_key'>,
     options?: RequestOptions
-  ): Promise<SipayApiResponse> {
+  ): Promise<SipayApiResponse<SubMerchantPFAddResponse>> {
     const data = this.addMerchantKey(subMerchantData);
     return this.post('/api/addSubMerchantPF', data, options);
   }
@@ -156,7 +179,7 @@ export class SubMerchant extends SipayResource {
   async deletePF(
     deleteData: Omit<DeleteSubMerchantPFRequest, 'merchant_key'>,
     options?: RequestOptions
-  ): Promise<SipayApiResponse> {
+  ): Promise<SipayApiResponse<SubMerchantPFDeleteResponse>> {
     const data = this.addMerchantKey(deleteData);
     return this.post('/api/deleteSubMerchantPF', data, options);
   }
@@ -167,7 +190,7 @@ export class SubMerchant extends SipayResource {
   async viewPF(
     viewData: Omit<ViewSubMerchantPFRequest, 'merchant_key'>,
     options?: RequestOptions
-  ): Promise<SipayApiResponse> {
+  ): Promise<SipayApiResponse<SubMerchantPFViewResponse>> {
     const data = this.addMerchantKey(viewData);
     return this.post('/api/subMerchantPF/view', data, options);
   }
@@ -178,8 +201,36 @@ export class SubMerchant extends SipayResource {
   async listPF(
     listData?: Omit<ListSubMerchantPFRequest, 'merchant_key'>,
     options?: RequestOptions
-  ): Promise<SipayApiResponse> {
+  ): Promise<SipayApiResponse<SubMerchantPFListResponse>> {
     const data = this.addMerchantKey(listData || {});
     return this.post('/api/listSubMerchantPF', data, options);
+  }
+
+  /**
+   * Make payout to sub merchants
+   * Hash format: sub_merchant_id|currency_code|amount for each payout item
+   */
+  async payout(
+    payoutData: Omit<PayoutRequest, 'merchant_key' | 'hash_key'>,
+    options?: RequestOptions
+  ): Promise<SipayApiResponse<SubMerchantPayoutResponse>> {
+    const data = this.addMerchantKey(payoutData) as PayoutRequest;
+
+    // Generate hash key for payout
+    // According to the spec: $data = $submerchant.'|'.$currency_code.'|'.$amount;
+    // We need to generate hash for the first payout item (or combined if multiple)
+    if (data.payout_data && data.payout_data.length > 0) {
+      const firstPayout = data.payout_data[0];
+      const hashParts = [
+        firstPayout.sub_merchant_id,
+        firstPayout.currency_code,
+        firstPayout.amount,
+      ];
+      data.hash_key = generateHashKey(hashParts, this.client['config'].appSecret);
+    } else {
+      throw new Error('Payout data is required');
+    }
+
+    return this.post('/ccpayment/api/marketplace/sub-merchant/payout', data, options);
   }
 }

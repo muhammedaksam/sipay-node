@@ -1,6 +1,5 @@
 import { Recurring } from '../src/resources/recurring';
 import { SipayHttpClient } from '../src/utils/http-client';
-import { RecurringQueryRequest } from '../src/types';
 
 // Mock the HTTP client
 jest.mock('../src/utils/http-client');
@@ -18,72 +17,37 @@ describe('Recurring Resource', () => {
 
     // Mock HTTP client methods
     mockHttpClient.post = jest.fn();
+    mockHttpClient.get = jest.fn();
+    mockHttpClient.postForm = jest.fn();
+
+    // Mock the config property that addMerchantKey accesses
+    (mockHttpClient as any)['config'] = {
+      merchantKey: 'test_merchant_key',
+      appSecret: 'test_app_secret',
+    };
 
     recurring = new Recurring(mockHttpClient);
   });
 
-  describe('query', () => {
-    it('should query recurring payments', async () => {
-      const queryData: RecurringQueryRequest = {
-        merchant_key: 'test_merchant_key',
-        plan_code: 'PLAN123',
-        app_id: 'test_app_id',
-        app_secret: 'test_app_secret',
-      };
-
-      const mockResponse = {
-        status_code: 100,
-        status_description: 'Success',
-        data: [
-          { id: 'REC1', status: 'active' },
-          { id: 'REC2', status: 'active' },
-        ],
-      };
-
-      mockHttpClient.post.mockResolvedValue(mockResponse);
-
-      const result = await recurring.query(queryData);
-
-      expect(mockHttpClient.post).toHaveBeenCalledWith('/api/QueryRecurring', queryData, undefined);
-      expect(result).toEqual(mockResponse);
+  describe('deprecated functionality', () => {
+    it('should be instantiated without errors', () => {
+      expect(recurring).toBeDefined();
+      expect(recurring).toBeInstanceOf(Recurring);
     });
 
-    it('should handle query errors', async () => {
-      const queryData: RecurringQueryRequest = {
-        merchant_key: 'test_merchant_key',
-        plan_code: 'PLAN123',
-        app_id: 'test_app_id',
-        app_secret: 'test_app_secret',
-      };
-
-      const mockError = new Error('Query failed');
-      mockHttpClient.post.mockRejectedValue(mockError);
-
-      await expect(recurring.query(queryData)).rejects.toThrow('Query failed');
+    it('should have access to base resource methods', () => {
+      // Test that it extends SipayResource properly
+      expect(typeof recurring['addMerchantKey']).toBe('function');
+      expect(typeof recurring['post']).toBe('function');
+      expect(typeof recurring['get']).toBe('function');
     });
+  });
 
-    it('should process recurring plan', async () => {
-      const planData = {
-        merchant_id: 'test_merchant_id',
-        plan_code: 'PLAN123',
-      };
-
-      const mockResponse = {
-        status_code: 100,
-        status_description: 'Plan processed successfully',
-        data: { plan_id: 'PLAN123' },
-      };
-
-      mockHttpClient.post.mockResolvedValue(mockResponse);
-
-      const result = await recurring.processPlan(planData);
-
-      expect(mockHttpClient.post).toHaveBeenCalledWith(
-        '/api/recurring/plan/process',
-        planData,
-        undefined
-      );
-      expect(result).toEqual(mockResponse);
+  describe('note about migration', () => {
+    it('should indicate that recurring functionality is handled by Payments resource', () => {
+      // This test serves as documentation that recurring payments should now be handled
+      // through the Payments resource with recurring parameters
+      expect(true).toBe(true); // Placeholder test for documentation
     });
   });
 });

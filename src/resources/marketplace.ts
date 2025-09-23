@@ -1,5 +1,14 @@
 import { SipayResource } from './base';
-import { SipayApiResponse, RequestOptions } from '../types';
+import {
+  SipayApiResponse,
+  RequestOptions,
+  MarketplacePaymentResponse,
+  PaymentStatusResponse,
+  MarketplaceRefundResponse,
+  SettlementsResponse,
+  TransactionApprovalResponse,
+  SubMerchantPayoutResponse,
+} from '../types';
 import { generatePaymentHashKey } from '../utils';
 
 export interface MarketplaceSaleRequest {
@@ -54,6 +63,14 @@ export interface SettlementsRequest {
   end_date?: string;
 }
 
+export interface MarketplacePayoutRequest {
+  merchant_key: string;
+  sub_merchant_key: string;
+  amount: number;
+  currency_code: string;
+  description?: string;
+}
+
 export class Marketplace extends SipayResource {
   /**
    * Make a marketplace payment (non-secure/2D)
@@ -61,7 +78,7 @@ export class Marketplace extends SipayResource {
   async pay2D(
     paymentData: Omit<MarketplaceSaleRequest, 'merchant_key' | 'hash_key'>,
     options?: RequestOptions
-  ): Promise<SipayApiResponse> {
+  ): Promise<SipayApiResponse<MarketplacePaymentResponse>> {
     const data = this.addMerchantKey(paymentData) as MarketplaceSaleRequest;
 
     // Generate hash key for marketplace payment
@@ -85,7 +102,7 @@ export class Marketplace extends SipayResource {
   async pay3D(
     paymentData: Omit<MarketplaceSaleRequest, 'merchant_key'>,
     options?: RequestOptions
-  ): Promise<SipayApiResponse> {
+  ): Promise<SipayApiResponse<MarketplacePaymentResponse>> {
     const data = this.addMerchantKey(paymentData);
     return this.post('/api/marketplace/sale/pay/smart/secure', data, options);
   }
@@ -96,7 +113,7 @@ export class Marketplace extends SipayResource {
   async refund(
     refundData: Omit<MarketplaceRefundRequest, 'merchant_key'>,
     options?: RequestOptions
-  ): Promise<SipayApiResponse> {
+  ): Promise<SipayApiResponse<MarketplaceRefundResponse>> {
     const data = this.addMerchantKey(refundData);
     return this.post('/ccpayment/api/marketplace/sale/refund', data, options);
   }
@@ -107,7 +124,7 @@ export class Marketplace extends SipayResource {
   async checkStatus(
     statusData: Omit<MarketplaceStatusRequest, 'merchant_key'>,
     options?: RequestOptions
-  ): Promise<SipayApiResponse> {
+  ): Promise<SipayApiResponse<PaymentStatusResponse>> {
     const data = this.addMerchantKey(statusData);
     return this.post('/ccpayment/api/marketplace/sale/check/status', data, options);
   }
@@ -118,7 +135,7 @@ export class Marketplace extends SipayResource {
   async getSettlements(
     settlementsData: Omit<SettlementsRequest, 'merchant_key'>,
     options?: RequestOptions
-  ): Promise<SipayApiResponse> {
+  ): Promise<SipayApiResponse<SettlementsResponse>> {
     const data = this.addMerchantKey(settlementsData);
     return this.post('/ccpayment/api/settlements', data, options);
   }
@@ -129,8 +146,19 @@ export class Marketplace extends SipayResource {
   async approveTransaction(
     approveData: Omit<MarketplaceApproveRequest, 'merchant_key'>,
     options?: RequestOptions
-  ): Promise<SipayApiResponse> {
+  ): Promise<SipayApiResponse<TransactionApprovalResponse>> {
     const data = this.addMerchantKey(approveData);
     return this.post('/ccpayment/api/marketplace/sale/transaction/approve', data, options);
+  }
+
+  /**
+   * Process payout to sub merchants
+   */
+  async payout(
+    payoutData: Omit<MarketplacePayoutRequest, 'merchant_key'>,
+    options?: RequestOptions
+  ): Promise<SipayApiResponse<SubMerchantPayoutResponse>> {
+    const data = this.addMerchantKey(payoutData);
+    return this.post('/ccpayment/api/marketplace/sub-merchant/payout', data, options);
   }
 }

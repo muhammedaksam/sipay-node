@@ -1,6 +1,6 @@
 import { BrandedSolution } from '../src/resources/branded-solution';
 import { SipayHttpClient } from '../src/utils/http-client';
-import { BrandedSolutionRequest, BrandedStatusRequest } from '../src/types';
+import { BrandedSolutionRequest } from '../src/types';
 
 // Mock the HTTP client
 jest.mock('../src/utils/http-client');
@@ -94,45 +94,33 @@ describe('BrandedSolution Resource', () => {
     });
   });
 
-  describe('checkStatus', () => {
-    it('should check payment status', async () => {
-      const statusData: Omit<BrandedStatusRequest, 'merchant_key'> = {
+  describe('error handling', () => {
+    it('should handle create payment link errors', async () => {
+      const linkData: Omit<BrandedSolutionRequest, 'merchant_key'> = {
         invoice_id: 'INV123',
+        invoice_description: 'Test payment',
+        total: 100.0,
+        currency_code: 'TRY',
+        items: [
+          {
+            name: 'Test Item',
+            price: 100.0,
+            qnantity: 1,
+            description: 'Test description',
+          },
+        ],
+        name: 'John',
+        surname: 'Doe',
+        return_url: 'https://example.com/return',
+        cancel_url: 'https://example.com/cancel',
       };
 
-      const mockResponse = {
-        status_code: 100,
-        status_description: 'Payment completed',
-        data: {
-          status: 'success',
-          transaction_id: 'TXN123',
-        },
-      };
-
-      mockHttpClient.post.mockResolvedValue(mockResponse);
-
-      const result = await brandedSolution.checkStatus(statusData);
-
-      expect(mockHttpClient.post).toHaveBeenCalledWith(
-        '/purchase/status',
-        expect.objectContaining({
-          ...statusData,
-          merchant_key: 'test_merchant_key',
-        }),
-        undefined
-      );
-      expect(result).toEqual(mockResponse);
-    });
-
-    it('should handle status check errors', async () => {
-      const statusData: Omit<BrandedStatusRequest, 'merchant_key'> = {
-        invoice_id: 'INV123',
-      };
-
-      const mockError = new Error('Status check failed');
+      const mockError = new Error('Link creation failed');
       mockHttpClient.post.mockRejectedValue(mockError);
 
-      await expect(brandedSolution.checkStatus(statusData)).rejects.toThrow('Status check failed');
+      await expect(brandedSolution.createPaymentLink(linkData)).rejects.toThrow(
+        'Link creation failed'
+      );
     });
   });
 });

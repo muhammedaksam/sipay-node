@@ -37,10 +37,11 @@ async function brandedSolutionExample() {
 
       const invoiceId = `BRANDED${Date.now()}`;
 
-      // Simulate checking the status later
+      // Simulate checking the status later (use regular payment status check)
       setTimeout(async () => {
         try {
-          const status = await sipay.brandedSolution.checkStatus({
+          // Use the regular payment status check instead of brandedSolution.checkStatus
+          const status = await sipay.payments.checkStatus({
             invoice_id: invoiceId,
           });
 
@@ -60,7 +61,8 @@ async function handleBrandedWebhook(sipay: Sipay, invoiceId: string) {
   try {
     console.log('Handling branded solution webhook...');
 
-    const status = await sipay.brandedSolution.checkStatus({
+    // Use the regular payment status check instead of brandedSolution.checkStatus
+    const status = await sipay.payments.checkStatus({
       invoice_id: invoiceId,
     });
 

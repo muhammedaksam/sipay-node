@@ -55,6 +55,10 @@ async function testFinalPayment() {
       ],
       name: 'Test',
       surname: 'User',
+      return_url: 'https://example.com/success',
+      cancel_url: 'https://example.com/cancel',
+      order_type: 'sale',
+      ip: '127.0.0.1',
     };
 
     console.log('   Using invoice_id:', invoice_id);

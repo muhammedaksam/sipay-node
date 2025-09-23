@@ -1,5 +1,5 @@
 import { SipayResource } from './base';
-import { CommissionRequest, SipayApiResponse, RequestOptions } from '../types';
+import { CommissionRequest, SipayApiResponse, RequestOptions, CommissionResponse } from '../types';
 
 export class Commissions extends SipayResource {
   /**
@@ -8,7 +8,7 @@ export class Commissions extends SipayResource {
   async getCommissions(
     commissionData: CommissionRequest,
     options?: RequestOptions
-  ): Promise<SipayApiResponse> {
+  ): Promise<SipayApiResponse<CommissionResponse>> {
     return this.get('/api/commissions', commissionData, options);
   }
 }

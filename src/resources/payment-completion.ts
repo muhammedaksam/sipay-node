@@ -1,5 +1,5 @@
 import { SipayResource } from './base';
-import { SipayApiResponse, RequestOptions } from '../types';
+import { SipayApiResponse, RequestOptions, PaymentCompleteResponse } from '../types';
 import * as crypto from 'crypto';
 const { createHash, createCipheriv } = crypto;
 
@@ -19,7 +19,7 @@ export class PaymentCompletion extends SipayResource {
   async completePayment(
     completionData: Omit<PaymentCompleteRequest, 'merchant_key' | 'hash_key'>,
     options?: RequestOptions
-  ): Promise<SipayApiResponse> {
+  ): Promise<SipayApiResponse<PaymentCompleteResponse>> {
     const data = this.addMerchantKey(completionData) as PaymentCompleteRequest;
 
     // Generate hash key using the payment completion format

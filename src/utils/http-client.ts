@@ -1,5 +1,5 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-import { SipayConfig, SipayApiResponse, SipayError, RequestOptions } from '../types';
+import { SipayConfig, SipayApiResponse, SipayError, RequestOptions, TokenResponse } from '../types';
 
 export class SipayHttpClient {
   private client: AxiosInstance;
@@ -41,13 +41,10 @@ export class SipayHttpClient {
 
   async authenticate(): Promise<void> {
     try {
-      const response = await this.client.post<SipayApiResponse<{ token: string; is_3d: number }>>(
-        '/api/token',
-        {
-          app_id: this.config.appId,
-          app_secret: this.config.appSecret,
-        }
-      );
+      const response = await this.client.post<SipayApiResponse<TokenResponse>>('/api/token', {
+        app_id: this.config.appId,
+        app_secret: this.config.appSecret,
+      });
 
       if (response.data.status_code === 100 && response.data.data?.token) {
         this.token = response.data.data.token;

@@ -8,71 +8,99 @@ async function recurringPaymentExample() {
   });
 
   try {
-    console.log('Querying recurring payment plans...');
+    console.log('Creating a recurring payment...');
 
-    // Query existing recurring plans
-    const recurringQuery = await sipay.recurring.query({
-      merchant_key: 'your-merchant-key',
-      plan_code: 'MONTHLY_PLAN_001',
-      app_id: 'your-app-id',
-      app_secret: 'your-app-secret',
+    // Recurring payments are created using regular pay2D or pay3D methods
+    // with additional recurring parameters
+    const recurringPayment = await sipay.payments.pay2D({
+      cc_holder_name: 'John Doe',
+      cc_no: '4111111111111111',
+      expiry_month: '12',
+      expiry_year: '2025',
+      cvv: '123',
+      currency_code: 'TRY',
+      installments_number: 1,
+      invoice_id: `RECURRING_${Date.now()}`,
+      invoice_description: 'Monthly Subscription Payment',
+      total: 100.0,
+      items: [
+        {
+          name: 'Monthly Subscription',
+          price: 100.0,
+          qnantity: 1,
+          description: 'Monthly subscription service',
+        },
+      ],
+      name: 'John',
+      surname: 'Doe',
+      return_url: 'https://example.com/success',
+      cancel_url: 'https://example.com/cancel',
+      order_type: '1', // Enable recurring (1 for recurring, 0 for normal)
+      ip: '127.0.0.1',
+      // Recurring payment specific parameters
+      recurring_payment_number: 12, // 12 payments total
+      recurring_payment_cycle: 'M', // Monthly (M = Month, D = Day, Y = Year)
+      recurring_payment_interval: '1', // Every 1 month
+      recurring_web_hook_key: 'your-webhook-key', // For status notifications
     });
 
-    console.log('Recurring Query Result:', recurringQuery);
+    console.log('Recurring Payment Result:', recurringPayment);
 
-    if (recurringQuery.status_code === 100) {
-      console.log('Processing recurring plan...');
-
-      // Process a recurring payment plan
-      const planProcess = await sipay.recurring.processPlan({
-        merchant_id: 'your-merchant-id',
-        plan_code: 'MONTHLY_PLAN_001',
-      });
-
-      console.log('Plan Process Result:', planProcess);
-
-      if (planProcess.status_code === 100) {
-        console.log('Recurring plan processed successfully!');
-      } else {
-        console.log('Plan processing failed:', planProcess.status_description);
-      }
+    if (recurringPayment.status_code === 100) {
+      console.log('Recurring payment setup successful!');
+      console.log('Recurring plan will charge every month for 12 months');
+    } else {
+      console.log('Recurring payment failed:', recurringPayment.status_description);
     }
   } catch (error) {
     console.error('Recurring Payment Error:', error);
   }
 }
 
-// Example: Set up a subscription
+// Example: Set up a subscription using recurring parameters
 async function setupSubscription(sipay: Sipay, customerId: string, planCode: string) {
   try {
     console.log('Setting up subscription for customer:', customerId);
 
-    // First, query the plan details
-    const planQuery = await sipay.recurring.query({
-      merchant_key: 'your-merchant-key',
-      plan_code: planCode,
-      app_id: 'your-app-id',
-      app_secret: 'your-app-secret',
-    });
-
-    if (planQuery.status_code !== 100) {
-      throw new Error(`Plan query failed: ${planQuery.status_description}`);
-    }
-
-    console.log('Plan details:', planQuery.data);
-
-    // Process the subscription
-    const subscription = await sipay.recurring.processPlan({
-      merchant_id: customerId,
-      plan_code: planCode,
+    // Create a recurring payment using pay2D with recurring parameters
+    const subscription = await sipay.payments.pay2D({
+      cc_holder_name: 'Customer Name',
+      cc_no: '4111111111111111',
+      expiry_month: '12',
+      expiry_year: '2025',
+      cvv: '123',
+      currency_code: 'TRY',
+      installments_number: 1,
+      invoice_id: `SUB_${planCode}_${Date.now()}`,
+      invoice_description: `Subscription: ${planCode}`,
+      total: 100.0,
+      items: [
+        {
+          name: 'Monthly Subscription',
+          price: 100.0,
+          qnantity: 1,
+          description: 'Monthly subscription service',
+        },
+      ],
+      name: 'Customer',
+      surname: 'Name',
+      return_url: 'https://example.com/success',
+      cancel_url: 'https://example.com/cancel',
+      order_type: '1', // Enable recurring
+      ip: '127.0.0.1',
+      // Recurring parameters
+      recurring_payment_number: 12,
+      recurring_payment_cycle: 'M',
+      recurring_payment_interval: '1',
+      recurring_web_hook_key: 'your-webhook-key',
     });
 
     if (subscription.status_code === 100) {
       console.log('Subscription created successfully!');
       return {
         success: true,
-        subscriptionId: subscription.data?.subscription_id,
-        planDetails: planQuery.data,
+        subscriptionId: subscription.data?.order_no,
+        planDetails: { planCode, customerId },
       };
     } else {
       throw new Error(`Subscription failed: ${subscription.status_description}`);

@@ -76,6 +76,10 @@ async function runPaymentTests() {
       expiry_month: visaCard.expiry_month,
       expiry_year: visaCard.expiry_year,
       cvv: visaCard.cvv,
+      cancel_url: 'https://example.com/cancel',
+      return_url: 'https://example.com/success',
+      order_type: 'sale',
+      ip: '127.0.0.1',
     });
     // eslint-disable-next-line no-console
     console.log(
@@ -113,6 +117,13 @@ async function runPaymentTests() {
       expiry_month: visaCard.expiry_month,
       expiry_year: visaCard.expiry_year,
       cvv: visaCard.cvv,
+      cancel_url: 'https://example.com/cancel',
+      return_url: 'https://example.com/success',
+      order_type: 'sale',
+      bill_email: 'test@example.com',
+      bill_phone: '+905001234567',
+      response_method: 'POST',
+      ip: '127.0.0.1',
     });
     // eslint-disable-next-line no-console
     console.log(
@@ -144,6 +155,10 @@ async function runPaymentTests() {
       expiry_month: masterCard.expiry_month,
       expiry_year: masterCard.expiry_year,
       cvv: masterCard.cvv,
+      cancel_url: 'https://example.com/cancel',
+      return_url: 'https://example.com/success',
+      order_type: 'sale',
+      ip: '127.0.0.1',
     });
     // eslint-disable-next-line no-console
     console.log(
@@ -169,6 +184,10 @@ async function runPaymentTests() {
       expiry_month: troyCard.expiry_month,
       expiry_year: troyCard.expiry_year,
       cvv: troyCard.cvv,
+      cancel_url: 'https://example.com/cancel',
+      return_url: 'https://example.com/success',
+      order_type: 'sale',
+      ip: '127.0.0.1',
     });
     // eslint-disable-next-line no-console
     console.log(
@@ -193,6 +212,10 @@ async function runPaymentTests() {
       expiry_month: visaCard.expiry_month,
       expiry_year: visaCard.expiry_year,
       cvv: visaCard.cvv,
+      cancel_url: 'https://example.com/cancel',
+      return_url: 'https://example.com/success',
+      order_type: 'sale',
+      ip: '127.0.0.1',
     });
     // eslint-disable-next-line no-console
     console.log(
