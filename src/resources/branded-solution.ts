@@ -1,10 +1,5 @@
 import { SipayResource } from './base';
-import {
-  BrandedSolutionRequest,
-  BrandedStatusRequest,
-  SipayApiResponse,
-  RequestOptions,
-} from '../types';
+import { BrandedSolutionRequest, SipayApiResponse, RequestOptions } from '../types';
 
 export class BrandedSolution extends SipayResource {
   /**
@@ -18,14 +13,6 @@ export class BrandedSolution extends SipayResource {
     return this.post('/purchase/link', data, options);
   }
 
-  /**
-   * Check the status of a branded payment
-   */
-  async checkStatus(
-    statusData: Omit<BrandedStatusRequest, 'merchant_key'>,
-    options?: RequestOptions
-  ): Promise<SipayApiResponse> {
-    const data = this.addMerchantKey(statusData);
-    return this.post('/purchase/status', data, options);
-  }
+  // Note: For checking branded payment status, use the standard Payments.checkStatus() method
+  // with the invoice_id from the branded payment link
 }

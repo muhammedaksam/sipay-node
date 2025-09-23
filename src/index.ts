@@ -4,6 +4,11 @@ import { Payments } from './resources/payments';
 import { Recurring } from './resources/recurring';
 import { BrandedSolution } from './resources/branded-solution';
 import { Commissions } from './resources/commissions';
+import { Cards } from './resources/cards';
+import { PaymentCompletion } from './resources/payment-completion';
+import { Marketplace } from './resources/marketplace';
+import { Cashout } from './resources/cashout';
+import { SubMerchant } from './resources/sub-merchant';
 
 export class Sipay {
   private client: SipayHttpClient;
@@ -12,6 +17,11 @@ export class Sipay {
   public recurring: Recurring;
   public brandedSolution: BrandedSolution;
   public commissions: Commissions;
+  public cards: Cards;
+  public paymentCompletion: PaymentCompletion;
+  public marketplace: Marketplace;
+  public cashout: Cashout;
+  public subMerchant: SubMerchant;
 
   constructor(config: SipayConfig) {
     this.client = new SipayHttpClient(config);
@@ -21,6 +31,11 @@ export class Sipay {
     this.recurring = new Recurring(this.client);
     this.brandedSolution = new BrandedSolution(this.client);
     this.commissions = new Commissions(this.client);
+    this.cards = new Cards(this.client);
+    this.paymentCompletion = new PaymentCompletion(this.client);
+    this.marketplace = new Marketplace(this.client);
+    this.cashout = new Cashout(this.client);
+    this.subMerchant = new SubMerchant(this.client);
   }
 
   /**
@@ -57,4 +72,9 @@ export { Payments } from './resources/payments';
 export { Recurring } from './resources/recurring';
 export { BrandedSolution } from './resources/branded-solution';
 export { Commissions } from './resources/commissions';
+export { Cards } from './resources/cards';
+export { PaymentCompletion } from './resources/payment-completion';
+export { Marketplace } from './resources/marketplace';
+export { Cashout } from './resources/cashout';
+export { SubMerchant } from './resources/sub-merchant';
 export * from './utils';

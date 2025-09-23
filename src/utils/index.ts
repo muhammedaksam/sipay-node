@@ -1,4 +1,5 @@
-import { createHash, createCipheriv, createDecipheriv } from 'crypto';
+import * as crypto from 'crypto';
+const { createHash, createCipheriv, createDecipheriv } = crypto;
 
 /**
  * Utility functions for Sipay SDK
@@ -67,13 +68,12 @@ export function formatAmount(amount: number): string {
 
 /**
  * Format amount specifically for hash key generation
- * This should match PHP's format exactly: just the number as-is, no forced decimals
+ * This should match PHP's number_format($amount, 2, ".", "") exactly
+ * PHP always formats with 2 decimal places: 10.00, 125.50, etc.
  */
 export function formatAmountForHash(amount: number): string {
-  // PHP uses: $total.'|' - which converts number to string without forcing decimal places
-  // For integer amounts like 10, PHP outputs "10", not "10.00"
-  // For decimal amounts like 10.5, PHP outputs "10.5", not "10.50"
-  return amount.toString();
+  // Match PHP number_format($amount, 2, ".", "") - always 2 decimal places
+  return amount.toFixed(2);
 }
 
 /**
@@ -116,47 +116,54 @@ export function generateStatusHashKey(
 }
 
 /**
- * Generate hash key for payment requests based on official Sipay documentation
- * This matches exactly the official JavaScript implementation in sipayEn.yaml
+ * Generate hash key for payment confirmation requests
+ * Order matches PHP SDK: merchant_key|invoice_id|status
+ */
+export function generateConfirmPaymentHashKey(
+  merchantKey: string,
+  invoiceId: string,
+  status: number,
+  apiSecret: string
+): string {
+  const parts = [merchantKey, invoiceId, status.toString()];
+
+  return generateHashKey(parts, apiSecret);
+}
+
+/**
+ * Generate hash key for payment requests
+ * Exact 1:1 Node.js implementation of PHP's generateHashKey function
+ * Matches: $total . '|' . $installment . '|' . $currency_code . '|' . $merchant_key . '|' . $invoice_id
+ * with openssl_encrypt('aes-256-cbc') encryption
  */
 export function generateHashKey(parts: (string | number)[], appSecret: string): string {
-  try {
-    // Join parts with pipe separator - exactly like official: data = total + '|' + ...
-    const data = parts.join('|');
+  const data = parts.join('|');
 
-    // Generate random IV - exactly like official: crypto.createHash('sha1').update(String(Math.random())).digest('hex').slice(0, 16)
-    const iv = createHash('sha1').update(String(Math.random())).digest('hex').slice(0, 16);
+  // Generate IV using SHA1 hash of random value
+  const iv = createHash('sha1').update(String(Math.random())).digest('hex').slice(0, 16);
 
-    // Create password hash from app secret - exactly like official: crypto.createHash('sha1').update(app_secret).digest('hex')
-    const password = createHash('sha1').update(appSecret).digest('hex');
+  // Generate password using SHA1 hash of app secret
+  const password = createHash('sha1').update(appSecret).digest('hex');
 
-    // Generate random salt - exactly like official: crypto.createHash('sha1').update(String(Math.random())).digest('hex').slice(0, 4)
-    const salt = createHash('sha1').update(String(Math.random())).digest('hex').slice(0, 4);
+  // Generate salt using SHA1 hash of random value
+  const salt = createHash('sha1').update(String(Math.random())).digest('hex').slice(0, 4);
 
-    // Create salt with password - get full 32-byte key
-    const saltWithPasswordHash = createHash('sha256')
-      .update(password + salt)
-      .digest(); // Get Buffer directly, not hex string
+  // Create encryption key using SHA256 hash of password and salt
+  const saltWithPassword = createHash('sha256')
+    .update(password + salt)
+    .digest('hex')
+    .slice(0, 32);
 
-    // Encrypt data using AES-256-CBC - exactly like official implementation
-    const cipher = createCipheriv(
-      'aes-256-cbc',
-      saltWithPasswordHash, // Use Buffer directly
-      Buffer.from(iv, 'ascii')
-    );
+  // Encrypt data using AES-256-CBC
+  const cipher = createCipheriv('aes-256-cbc', saltWithPassword, iv);
+  let encrypted = cipher.update(data, 'binary', 'base64');
+  encrypted += cipher.final('base64');
 
-    // Official uses: cipher.update(padded_data, 'binary', 'base64'); cipher.final('base64');
-    let encrypted = cipher.update(data, 'binary', 'base64');
-    encrypted += cipher.final('base64');
+  // Bundle components and replace forward slashes with double underscores
+  let msgEncryptedBundle = `${iv}:${salt}:${encrypted}`;
+  msgEncryptedBundle = msgEncryptedBundle.replace(/\//g, '__');
 
-    // Format the final hash key - exactly like official: iv + ':' + salt + ':' + encrypted
-    const msgBundle = `${iv}:${salt}:${encrypted}`;
-
-    // Replace / with __ - exactly like official: msg_encrypted_bundle.replace('/', '__')
-    return msgBundle.replace(/\//g, '__');
-  } catch (error) {
-    throw new Error(`Hash key generation failed: ${error}`);
-  }
+  return msgEncryptedBundle;
 }
 
 /**

@@ -20,6 +20,7 @@ export interface SipayApiResponse<T = any> {
 export interface TokenResponse {
   token: string;
   is_3d: number;
+  expires_at: string;
 }
 
 export interface PaymentItem {
@@ -84,6 +85,25 @@ export interface RefundRequest {
   invoice_id: string;
   merchant_key: string;
   amount: string;
+}
+
+export interface ConfirmPaymentRequest {
+  invoice_id: string;
+  merchant_key: string;
+  status: number; // 1 = approved, 2 = abort
+  hash_key: string;
+  total?: number; // If not provided or 0, entire amount is confirmed
+}
+
+export interface InstallmentsResponse {
+  status_code: number;
+  message: string;
+  installments: number[];
+}
+
+export interface GetTokenRequest {
+  app_id: string;
+  app_secret: string;
 }
 
 export interface RecurringQueryRequest {

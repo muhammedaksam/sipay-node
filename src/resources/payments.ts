@@ -8,8 +8,16 @@ import {
   RequestOptions,
   OrderStatusRequest,
   RefundRequest,
+  ConfirmPaymentRequest,
+  InstallmentsResponse,
+  GetTokenRequest,
+  TokenResponse,
 } from '../types';
-import { generatePaymentHashKey, generateStatusHashKey } from '../utils';
+import {
+  generatePaymentHashKey,
+  generateStatusHashKey,
+  generateConfirmPaymentHashKey,
+} from '../utils';
 
 export class Payments extends SipayResource {
   /**
@@ -19,9 +27,9 @@ export class Payments extends SipayResource {
     paymentData: Omit<Payment2DRequest, 'merchant_key' | 'hash_key'>,
     options?: RequestOptions
   ): Promise<SipayApiResponse> {
-    const data = this.addMerchantKey(paymentData);
+    const data = this.addMerchantKey(paymentData) as Payment2DRequest;
 
-    // Generate hash key for payment
+    // Generate hash key for payment verification
     const hashKey = generatePaymentHashKey(
       data.total,
       data.installments_number || 1,
@@ -84,6 +92,28 @@ export class Payments extends SipayResource {
   }
 
   /**
+   * Confirm a pre-authorization payment
+   */
+  async confirmPayment(
+    confirmData: Omit<ConfirmPaymentRequest, 'merchant_key' | 'hash_key'>,
+    options?: RequestOptions
+  ): Promise<SipayApiResponse> {
+    const data = this.addMerchantKey(confirmData) as ConfirmPaymentRequest;
+
+    // Generate hash key for payment confirmation
+    // Hash format: merchant_key|invoice_id|status
+    const hashKey = generateConfirmPaymentHashKey(
+      data.merchant_key,
+      data.invoice_id,
+      data.status,
+      this.client['config'].appSecret
+    );
+    data.hash_key = hashKey;
+
+    return this.post('/api/confirmPayment', data, options);
+  }
+
+  /**
    * Refund a payment
    */
   async refund(
@@ -92,6 +122,26 @@ export class Payments extends SipayResource {
   ): Promise<SipayApiResponse> {
     const data = this.addMerchantKey(refundData);
     return this.post('/api/refund', data, options);
+  }
+
+  /**
+   * Get merchant active installments
+   * Note: This endpoint uses Bearer token authentication
+   */
+  async getInstallments(options?: RequestOptions): Promise<SipayApiResponse<InstallmentsResponse>> {
+    // This endpoint doesn't require request body, only headers with Bearer token
+    return this.post('/api/installments', {}, options);
+  }
+
+  /**
+   * Get authentication token
+   * Used for Bearer token authentication in certain endpoints
+   */
+  async getToken(
+    tokenData: GetTokenRequest,
+    options?: RequestOptions
+  ): Promise<SipayApiResponse<TokenResponse>> {
+    return this.post('/api/token', tokenData, options);
   }
 
   /**
