@@ -1,5 +1,14 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-import { SipayConfig, SipayApiResponse, SipayError, RequestOptions, TokenResponse } from '../types';
+import {
+  SipayConfig,
+  SipayApiResponse,
+  SipayError,
+  RequestOptions,
+  TokenResponse,
+  getStatusCategory,
+  getStatusDescription,
+  isRetryableStatus,
+} from '../types';
 
 export class SipayHttpClient {
   private client: AxiosInstance;
@@ -133,10 +142,22 @@ export class SipayHttpClient {
 
     if (error.response?.data) {
       const errorData = error.response.data;
+      const statusCode = errorData.status_code;
+
       sipayError.message =
-        errorData.status_description || errorData.message || 'Unknown Sipay error';
-      sipayError.status_code = errorData.status_code;
-      sipayError.status_description = errorData.status_description;
+        errorData.status_description ||
+        errorData.message ||
+        getStatusDescription(statusCode) ||
+        'Unknown Sipay error';
+      sipayError.status_code = statusCode;
+      sipayError.status_description =
+        errorData.status_description || getStatusDescription(statusCode);
+
+      // Add status code metadata
+      if (statusCode) {
+        sipayError.category = getStatusCategory(statusCode);
+        sipayError.isRetryable = isRetryableStatus(statusCode);
+      }
     } else if (error.request) {
       sipayError.message = 'Network error: No response received from Sipay';
     } else {

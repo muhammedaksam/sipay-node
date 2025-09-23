@@ -284,6 +284,8 @@ export interface SipayError extends Error {
   status_code?: number;
   status_description?: string;
   type: 'SipayError';
+  category?: string;
+  isRetryable?: boolean;
 }
 
 export interface RequestOptions {
@@ -554,3 +556,6 @@ export interface SubMerchantPFInfo {
   status: string;
   created_at: string;
 }
+
+// Export status codes
+export * from './status-codes';

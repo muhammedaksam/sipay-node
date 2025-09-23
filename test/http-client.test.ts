@@ -317,7 +317,7 @@ describe('SipayHttpClient', () => {
         await httpClient.request('POST', '/api/test', {});
       } catch (error: any) {
         expect(error.type).toBe('SipayError');
-        expect(error.message).toBe('Unknown Sipay error');
+        expect(error.message).toBe('Unknown status code');
       }
     });
 
