@@ -1,0 +1,58 @@
+{
+  "$schema": "https://context7.com/schema/context7.json",
+  "projectTitle": "Sipay Node.js SDK",
+  "description": "Official Node.js TypeScript SDK for Sipay payment gateway supporting 2D/3D Secure payments, recurring payments, and branded solutions",
+  "folders": ["examples/", "src/types/", ".github/"],
+  "excludeFolders": [
+    "coverage/",
+    "dist/",
+    "node_modules/",
+    "test/",
+    ".git/",
+    ".vscode/",
+    ".other/",
+    "scripts/"
+  ],
+  "excludeFiles": [
+    "CHANGELOG.md",
+    "LICENSE",
+    "EXAMPLES-FIXES-COMPLETE.md",
+    "GENERIC-TYPES-FIX-COMPLETE.md",
+    "TYPE-AUDIT-COMPLETE.md",
+    "TYPE-AUDIT-REPORT.md",
+    "endpoint-audit.md",
+    "pnpm-lock.yaml",
+    "jest.config.js",
+    "eslint.config.js",
+    "tsconfig.json",
+    "tsconfig.base.json",
+    "tsconfig.esm.json",
+    "tsconfig.types.json",
+    ".prettierrc",
+    ".gitignore"
+  ],
+  "rules": [
+    "Use TypeScript with strict type checking for all Sipay SDK implementations",
+    "Always handle authentication automatically via the token endpoint - never manually manage tokens",
+    "Use status code 100 to determine payment success, not just truthy responses",
+    "Implement proper error handling with SipayError types and check status_description for details",
+    "Never log sensitive payment data like credit card numbers - use masking utilities provided in the SDK",
+    "For 3D Secure payments, render the returned HTML form in the browser for user authentication",
+    "Always use unique invoice_id values for each transaction to prevent duplicates",
+    "Follow the resource-based architecture pattern (payments, recurring, brandedSolution, commissions)",
+    "Use the provided test credentials and cards for development - mock environment is safe for testing",
+    "Validate credit card numbers using the built-in Luhn algorithm validation before API calls",
+    "Set proper timeout values (default 80000ms) for payment operations which can take time",
+    "Use the status code utilities to categorize and handle different error types appropriately"
+  ],
+  "previousVersions": [
+    {
+      "tag": "v1.1.0",
+      "title": "version 1.1.0"
+    },
+    {
+      "tag": "v1.0.6",
+      "title": "version 1.0.6"
+    }
+  ]
+}

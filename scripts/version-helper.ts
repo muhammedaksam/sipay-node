@@ -6,7 +6,7 @@ import { execSync } from 'node:child_process';
 
 interface FileToUpdate {
   path: string;
-  type: 'package.json';
+  type: 'package.json' | 'context7.json';
 }
 
 // Get command line arguments
@@ -35,6 +35,64 @@ function getCurrentVersion(): string {
   }
 }
 
+// Function to update context7.json with new version in previousVersions
+function updateContext7Json(newVersion: string, oldVersion: string): string | null {
+  const context7Path = path.join(projectRoot, 'context7.json');
+
+  try {
+    if (!fs.existsSync(context7Path)) {
+      console.log('⚠️  context7.json not found - skipping Context7 update');
+      return null;
+    }
+
+    const content = fs.readFileSync(context7Path, 'utf8');
+    const context7Json = JSON.parse(content);
+
+    // Add the old version to previousVersions if it's not already there
+    if (!context7Json.previousVersions) {
+      context7Json.previousVersions = [];
+    }
+
+    // Only add old version if it's different from new version and not already in previousVersions
+    if (oldVersion !== newVersion) {
+      const oldVersionTag = `v${oldVersion}`;
+      const existingVersion = context7Json.previousVersions.find(
+        (v: any) => v.tag === oldVersionTag
+      );
+
+      if (!existingVersion) {
+        // Add old version to the beginning of previousVersions
+        context7Json.previousVersions.unshift({
+          tag: oldVersionTag,
+          title: `version ${oldVersion}`,
+        });
+
+        // Keep only the 5 most recent versions to avoid clutter
+        if (context7Json.previousVersions.length > 5) {
+          context7Json.previousVersions = context7Json.previousVersions.slice(0, 5);
+        }
+
+        const updatedContent = JSON.stringify(context7Json, null, 2) + '\n';
+        fs.writeFileSync(context7Path, updatedContent);
+
+        console.log(`✅ Updated context7.json: Added v${oldVersion} to previousVersions`);
+        return updatedContent;
+      } else {
+        console.log(
+          `ℹ️  Version v${oldVersion} already exists in context7.json previousVersions - no update needed`
+        );
+        return null;
+      }
+    } else {
+      console.log('ℹ️  No version change detected - skipping context7.json update');
+      return null;
+    }
+  } catch (error) {
+    console.error('❌ Error updating context7.json:', (error as Error).message);
+    return null;
+  }
+}
+
 // Function to increment patch version (e.g., 1.0.1 -> 1.0.2)
 function incrementPatchVersion(version: string): string {
   const versionParts = version.split('.');
@@ -50,7 +108,7 @@ function incrementPatchVersion(version: string): string {
 }
 
 // Function to execute git operations
-function executeGitOperations(version: string, updatedFiles: number): void {
+function executeGitOperations(version: string, updatedFiles: number, hasContext7: boolean): void {
   console.log('\n🔄 Committing changes to git...');
 
   try {
@@ -58,22 +116,30 @@ function executeGitOperations(version: string, updatedFiles: number): void {
     process.chdir(projectRoot);
     execSync('git status', { stdio: 'ignore' });
 
-    // Add package.json
-    const filePaths = ['package.json'];
+    // Determine which files to add
+    const filesToAdd = ['package.json'];
+    const fileDescriptions = ['package.json'];
 
-    if (!fs.existsSync(path.join(projectRoot, 'package.json'))) {
+    if (hasContext7 && fs.existsSync(path.join(projectRoot, 'context7.json'))) {
+      filesToAdd.push('context7.json');
+      fileDescriptions.push('context7.json');
+    }
+
+    if (filesToAdd.length === 0) {
       console.log('⚠️  No files to commit');
       return;
     }
 
     // Add files to git
-    execSync('git add package.json', { stdio: 'ignore' });
-    console.log('📝 Added to git: package.json');
+    const gitAddCmd = `git add ${filesToAdd.join(' ')}`;
+    execSync(gitAddCmd, { stdio: 'ignore' });
+    console.log(`📝 Added to git: ${fileDescriptions.join(', ')}`);
 
     // Generate commit message
+    const filesDescription = hasContext7 ? 'package.json and context7.json' : 'package.json';
     const commitMessage = `chore: bump version to v${version}
 
-Updated version in package.json`;
+Updated version in ${filesDescription}${hasContext7 ? ' and added to Context7 previousVersions' : ''}`;
 
     // Commit the changes
     execSync(`git commit -m "${commitMessage}"`, { stdio: 'pipe' });
@@ -127,6 +193,9 @@ function updateVersions(version: string): void {
     process.exit(1);
   }
 
+  // Get current version before updating
+  const currentVersion = getCurrentVersion();
+
   console.log(`🚀 Updating version to ${version}...`);
 
   // Files to update
@@ -135,18 +204,28 @@ function updateVersions(version: string): void {
       path: 'package.json',
       type: 'package.json',
     },
+    {
+      path: 'context7.json',
+      type: 'context7.json',
+    },
   ];
 
   let updatedFiles = 0;
   let errors = 0;
+  let hasContext7Updated = false;
 
   filesToUpdate.forEach(({ path: filePath, type }) => {
     const fullPath = path.join(projectRoot, filePath);
 
     try {
       if (!fs.existsSync(fullPath)) {
-        console.warn(`⚠️  File not found: ${filePath}`);
-        return;
+        if (type === 'context7.json') {
+          console.log(`⚠️  File not found: ${filePath} - skipping Context7 update`);
+          return;
+        } else {
+          console.warn(`⚠️  File not found: ${filePath}`);
+          return;
+        }
       }
 
       const content = fs.readFileSync(fullPath, 'utf8');
@@ -158,14 +237,20 @@ function updateVersions(version: string): void {
         const oldVersion = packageJson.version;
         packageJson.version = version;
         updatedContent = JSON.stringify(packageJson, null, 2) + '\n';
+        fs.writeFileSync(fullPath, updatedContent);
 
         console.log(`✅ Updated ${filePath}: ${oldVersion} → ${version}`);
+        updatedFiles++;
+      } else if (type === 'context7.json') {
+        // Update context7.json - add current version to previousVersions
+        const result = updateContext7Json(version, currentVersion);
+        if (result !== null) {
+          hasContext7Updated = true;
+          updatedFiles++;
+        }
       } else {
         throw new Error(`Unknown file type: ${type}`);
       }
-
-      fs.writeFileSync(fullPath, updatedContent);
-      updatedFiles++;
     } catch (error) {
       console.error(`❌ Error updating ${filePath}:`, (error as Error).message);
       errors++;
@@ -183,10 +268,11 @@ function updateVersions(version: string): void {
 
     // Execute git operations if files were successfully updated
     if (updatedFiles > 0) {
-      executeGitOperations(version, updatedFiles);
+      executeGitOperations(version, updatedFiles, hasContext7Updated);
     }
 
-    console.log('\n💡 Note: Version has been updated in package.json');
+    const filesNote = hasContext7Updated ? 'package.json and context7.json' : 'package.json';
+    console.log(`\n💡 Note: Version has been updated in ${filesNote}`);
   }
 }
 
@@ -243,8 +329,9 @@ if (command === 'update') {
     );
     console.log('');
     console.log('Git Integration:');
-    console.log('  • Automatically stages package.json file (git add)');
+    console.log('  • Automatically stages package.json and context7.json files (git add)');
     console.log('  • Creates a commit with descriptive message');
+    console.log('  • Adds previous version to context7.json previousVersions array');
     console.log('  • Handles cases where not in a git repository gracefully');
     process.exit(1);
   }
