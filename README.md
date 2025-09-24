@@ -16,6 +16,7 @@ An unofficial Node.js TypeScript SDK for the Sipay payment gateway.
 - 🔄 Recurring payments
 - 🏷️ Branded payment solutions
 - 📊 Commission information
+- 🏷️ Status code management with detailed error handling
 - 🛡️ Type-safe with TypeScript
 - ✅ Input validation
 - 🔒 Secure payment processing
@@ -301,6 +302,105 @@ interface SipayApiResponse<T = any> {
   link?: string; // Payment link (for branded solutions)
 }
 ```
+
+## Status Code Management
+
+The SDK provides comprehensive status code utilities to help you handle different payment scenarios effectively.
+
+### Available Status Codes
+
+```typescript
+import { SipayStatusCode, getStatusCodeInfo, getSuggestedAction } from '@muhammedaksam/sipay-node';
+
+// Status code enums
+SipayStatusCode.SUCCESSFUL; // 100 - Payment successful
+SipayStatusCode.BASIC_VALIDATION; // 1   - Basic validation error
+SipayStatusCode.INVALID_CREDENTIALS; // 30  - Authentication failed
+SipayStatusCode.ORDER_FAILED; // 41  - Payment failed
+SipayStatusCode.CREDIT_CARD_BLOCKED; // 44  - Card blocked
+SipayStatusCode.REFUND_FAILED; // 49  - Refund error
+SipayStatusCode.FOREIGN_CARDS_NOT_ALLOWED; // 76 - Foreign cards not allowed
+// ... and 50+ more status codes
+```
+
+### Status Code Utilities
+
+```typescript
+import {
+  getStatusCodeInfo,
+  getSuggestedAction,
+  StatusCodeGroups,
+  isStatusInGroup,
+} from '@muhammedaksam/sipay-node';
+
+// Get detailed information about a status code
+const info = getStatusCodeInfo(response.status_code);
+console.log(info.description); // Human-readable description
+console.log(info.category); // 'success', 'validation_error', 'payment_error', etc.
+console.log(info.isRetryable); // Whether the error can be retried
+console.log(info.httpEquivalent); // HTTP status equivalent (if applicable)
+
+// Get actionable suggestions
+const suggestion = getSuggestedAction(response.status_code);
+console.log(suggestion); // "Check payment details and try with different parameters"
+
+// Use predefined groups for easy error handling
+if (isStatusInGroup(response.status_code, StatusCodeGroups.VALIDATION_ERRORS)) {
+  console.log('Please fix the validation errors in your request');
+} else if (isStatusInGroup(response.status_code, StatusCodeGroups.CARD_ERRORS)) {
+  console.log('Please try with a different card');
+}
+```
+
+### Enhanced Error Handling
+
+```typescript
+import { SipayStatusCode, getStatusCodeInfo } from '@muhammedaksam/sipay-node';
+
+try {
+  const response = await sipay.payments.pay2D(paymentData);
+
+  if (response.status_code === SipayStatusCode.SUCCESSFUL) {
+    console.log('✅ Payment successful!');
+    console.log('Order ID:', response.data?.order_id);
+  } else {
+    // Handle non-success responses with detailed status information
+    const statusInfo = getStatusCodeInfo(response.status_code);
+
+    console.log('❌ Payment failed:');
+    console.log('Status Code:', statusInfo.code);
+    console.log('Description:', statusInfo.description);
+    console.log('Category:', statusInfo.category);
+
+    // Handle retryable errors
+    if (statusInfo.isRetryable) {
+      console.log('🔄 This error is retryable - you can try again after a delay');
+      // Implement retry logic here
+    }
+  }
+} catch (error) {
+  // SDK errors now include enhanced status information
+  if (error.status_code) {
+    const statusInfo = getStatusCodeInfo(error.status_code);
+    console.log('Error category:', statusInfo.category);
+    console.log('Suggested action:', getSuggestedAction(error.status_code));
+  }
+}
+```
+
+### Status Categories
+
+The SDK categorizes status codes for easier error handling:
+
+- **Success**: `100`, `101`, `112` - Transaction completed successfully
+- **Validation Errors**: `1`, `12`, `13`, `32`, `33`, `85`, `108`, `404` - Request validation issues
+- **Authentication Errors**: `30`, `34`, `79`, `87` - Credential or permission issues
+- **Payment Errors**: `41`, `43`, `49`, `31`, `69`, `105` - Payment processing failures
+- **Merchant Errors**: `14`, `37`, `38`, `44`, `45-48`, `80`, `106` - Merchant configuration issues
+- **Card Errors**: `44`, `60`, `70`, `76`, `77`, `86`, `88-89` - Card-related problems
+- **Hash Errors**: `68`, `90-97` - Hash key validation failures
+- **Recurring Errors**: `55`, `71`, `73` - Recurring payment issues
+- **Retryable Errors**: `3`, `49`, `69`, `117` - Temporary errors that can be retried
 
 ## Development
 
