@@ -2,7 +2,11 @@
   "$schema": "https://context7.com/schema/context7.json",
   "projectTitle": "Sipay Node.js SDK",
   "description": "Official Node.js TypeScript SDK for Sipay payment gateway supporting 2D/3D Secure payments, recurring payments, and branded solutions",
-  "folders": ["examples/", "src/types/", ".github/"],
+  "folders": [
+    "examples/",
+    "src/types/",
+    ".github/"
+  ],
   "excludeFolders": [
     "coverage/",
     "dist/",
@@ -49,6 +53,10 @@
     "Configure webhook URLs in the Sipay merchant panel and use the provided webhook keys for security"
   ],
   "previousVersions": [
+    {
+      "tag": "v1.1.2",
+      "title": "version 1.1.2"
+    },
     {
       "tag": "v1.1.1",
       "title": "version 1.1.1"
