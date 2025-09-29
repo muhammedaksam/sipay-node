@@ -311,6 +311,63 @@ describe('Marketplace Resource', () => {
     });
   });
 
+  describe('payout', () => {
+    it('should process payout to sub merchant', async () => {
+      const payoutData = {
+        sub_merchant_key: 'sub123',
+        amount: 100.0,
+        currency_code: 'TRY',
+        description: 'Commission payout',
+      };
+
+      const mockResponse = {
+        status_code: 100,
+        status_description: 'Success',
+        payout_id: 'PAYOUT123',
+        amount: 100.0,
+      };
+
+      mockHttpClient.post.mockResolvedValue(mockResponse);
+
+      const result = await marketplace.payout(payoutData);
+
+      expect(mockHttpClient.post).toHaveBeenCalledWith(
+        '/ccpayment/api/marketplace/sub-merchant/payout',
+        { ...payoutData, merchant_key: 'test_merchant_key' },
+        undefined
+      );
+      expect(result).toBe(mockResponse);
+    });
+
+    it('should process payout with options', async () => {
+      const payoutData = {
+        sub_merchant_key: 'sub456',
+        amount: 75.0,
+        currency_code: 'TRY',
+        description: 'Sale payout',
+      };
+
+      const options = { timeout: 10000 };
+      const mockResponse = {
+        status_code: 100,
+        status_description: 'Success',
+        payout_id: 'PAYOUT456',
+        amount: 75.0,
+      };
+
+      mockHttpClient.post.mockResolvedValue(mockResponse);
+
+      const result = await marketplace.payout(payoutData, options);
+
+      expect(mockHttpClient.post).toHaveBeenCalledWith(
+        '/ccpayment/api/marketplace/sub-merchant/payout',
+        { ...payoutData, merchant_key: 'test_merchant_key' },
+        options
+      );
+      expect(result).toBe(mockResponse);
+    });
+  });
+
   describe('error handling', () => {
     it('should handle API errors', async () => {
       const error = new Error('API Error');

@@ -363,6 +363,52 @@ describe('SipayHttpClient', () => {
         expect(error.message).toBe('Unknown error occurred');
       }
     });
+
+    it('should handle error data with only status_code (no descriptions)', async () => {
+      const mockError = {
+        response: {
+          data: {
+            status_code: 400,
+            // No status_description or message
+          },
+        },
+      };
+
+      mockedAxios.request.mockRejectedValue(mockError);
+
+      try {
+        await httpClient.request('POST', '/api/test', {});
+      } catch (error: any) {
+        expect(error.type).toBe('SipayError');
+        expect(error.status_code).toBe(400);
+        // Should fallback to getStatusDescription for both message and status_description
+        expect(error.message).toBeDefined();
+        expect(error.status_description).toBeDefined();
+      }
+    });
+
+    it('should handle error data without status_code (no metadata)', async () => {
+      const mockError = {
+        response: {
+          data: {
+            message: 'Error without status code',
+            // No status_code
+          },
+        },
+      };
+
+      mockedAxios.request.mockRejectedValue(mockError);
+
+      try {
+        await httpClient.request('POST', '/api/test', {});
+      } catch (error: any) {
+        expect(error.type).toBe('SipayError');
+        expect(error.message).toBe('Error without status code');
+        // Should not add category or isRetryable metadata
+        expect(error.category).toBeUndefined();
+        expect(error.isRetryable).toBeUndefined();
+      }
+    });
   });
 
   describe('token management', () => {

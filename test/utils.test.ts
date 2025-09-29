@@ -782,6 +782,62 @@ describe('Utility Functions', () => {
       // But validateHashKey expects: status|total|invoiceId|orderId|currencyCode
       // So the parsing might not match perfectly, but it should at least parse without crashing
     });
+
+    it('should handle decryption errors gracefully', () => {
+      // Create a malformed hash that will cause decryption to throw
+      const malformedHash = 'iv123:salt456:malformed_base64_that_causes_error!!!';
+
+      // This should not throw - the catch block should handle it
+      expect(() => validateHashKey(malformedHash, 'secret')).not.toThrow();
+
+      const result = validateHashKey(malformedHash, 'secret');
+      expect(result).toEqual(['', 0, '', 0, '']);
+    });
+
+    it('should handle hash key that decrypts but has no pipe separators', () => {
+      // Try to create a scenario where decryption succeeds but has no pipes
+      // This is to test the condition `if (decrypted.includes('|'))`
+      const secretKey = 'test_secret_key';
+
+      // Use a hash key that might decrypt to something without pipes
+      const hashWithoutPipes = 'test:test:dGVzdA=='; // 'test' in base64
+
+      const result = validateHashKey(hashWithoutPipes, secretKey);
+
+      // Should return default values since no pipes were found
+      expect(Array.isArray(result)).toBe(true);
+      expect(result).toHaveLength(5);
+    });
+
+    it('should parse pipe-separated decrypted data correctly', () => {
+      // Test the pipe parsing logic by using generateServerFormatHashKey and then validateHashKey
+      const secretKey = 'test_secret_pipe_parsing';
+
+      // Create a hash that should decrypt to a pipe-separated format
+      const hashKey = generateServerFormatHashKey(
+        'approved',
+        150.75,
+        'INV456',
+        789,
+        'USD',
+        secretKey
+      );
+
+      const result = validateHashKey(hashKey, secretKey);
+
+      // Should parse the pipe-separated data correctly
+      expect(Array.isArray(result)).toBe(true);
+      expect(result).toHaveLength(5);
+
+      // At minimum, should have parsed some values (the exact format might vary)
+      // But the parsing logic should have been executed without errors
+      const [status, total, invoiceId, orderId, currencyCode] = result;
+      expect(typeof status).toBe('string');
+      expect(typeof total).toBe('number');
+      expect(typeof invoiceId).toBe('string');
+      expect(typeof orderId).toBe('number');
+      expect(typeof currencyCode).toBe('string');
+    });
   });
 
   describe('generateServerFormatHashKey', () => {

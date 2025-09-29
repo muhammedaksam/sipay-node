@@ -9,6 +9,7 @@ import { PaymentCompletion } from './resources/payment-completion';
 import { Marketplace } from './resources/marketplace';
 import { Cashout } from './resources/cashout';
 import { SubMerchant } from './resources/sub-merchant';
+import { SipayWebhooks } from './resources/webhooks';
 
 export class Sipay {
   private client: SipayHttpClient;
@@ -22,6 +23,7 @@ export class Sipay {
   public marketplace: Marketplace;
   public cashout: Cashout;
   public subMerchant: SubMerchant;
+  public webhooks: SipayWebhooks;
 
   constructor(config: SipayConfig) {
     this.client = new SipayHttpClient(config);
@@ -36,6 +38,7 @@ export class Sipay {
     this.marketplace = new Marketplace(this.client);
     this.cashout = new Cashout(this.client);
     this.subMerchant = new SubMerchant(this.client);
+    this.webhooks = new SipayWebhooks(this.client);
   }
 
   /**
@@ -77,4 +80,5 @@ export { PaymentCompletion } from './resources/payment-completion';
 export { Marketplace } from './resources/marketplace';
 export { Cashout } from './resources/cashout';
 export { SubMerchant } from './resources/sub-merchant';
+export { SipayWebhooks } from './resources/webhooks';
 export * from './utils';

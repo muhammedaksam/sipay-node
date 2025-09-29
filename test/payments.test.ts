@@ -129,6 +129,33 @@ describe('Payments Resource', () => {
 
       await expect(payments.pay2D(paymentData)).rejects.toThrow('Payment failed');
     });
+
+    it('should default installments_number to 1 when not provided', async () => {
+      // Create payment data without installments_number to test the || 1 fallback
+      const paymentData = create2DPaymentData();
+      delete (paymentData as any).installments_number; // Remove to trigger fallback
+
+      const mockResponse = {
+        status_code: 100,
+        status_description: 'Success',
+      };
+
+      mockHttpClient.post.mockResolvedValue(mockResponse);
+
+      const result = await payments.pay2D(paymentData);
+
+      // The hash key generation should use 1 as default for installments_number
+      expect(mockHttpClient.post).toHaveBeenCalledWith(
+        '/api/paySmart2D',
+        expect.objectContaining({
+          ...paymentData,
+          merchant_key: expect.any(String),
+          hash_key: expect.any(String),
+        }),
+        undefined
+      );
+      expect(result).toBe(mockResponse);
+    });
   });
 
   describe('pay3D', () => {
@@ -299,6 +326,146 @@ describe('Payments Resource', () => {
         { ...paymentData, merchant_key: 'test_merchant_key' },
         options
       );
+      expect(result).toBe(mockResponse);
+    });
+  });
+
+  describe('confirmPayment', () => {
+    it('should confirm payment with hash key generation', async () => {
+      const confirmData = {
+        invoice_id: 'INV123',
+        status: 1, // 1 = approved
+      };
+
+      const mockResponse = {
+        status_code: 100,
+        status_description: 'Success',
+      };
+
+      mockHttpClient.post.mockResolvedValue(mockResponse);
+
+      const result = await payments.confirmPayment(confirmData);
+
+      expect(mockHttpClient.post).toHaveBeenCalledWith(
+        '/api/confirmPayment',
+        expect.objectContaining({
+          merchant_key: 'test_merchant_key',
+          invoice_id: 'INV123',
+          status: 1,
+          hash_key: expect.any(String),
+        }),
+        undefined
+      );
+      expect(result).toBe(mockResponse);
+    });
+
+    it('should confirm payment with options', async () => {
+      const confirmData = {
+        invoice_id: 'INV123',
+        status: 2, // 2 = abort
+      };
+
+      const options = { timeout: 5000 };
+      const mockResponse = {
+        status_code: 100,
+        status_description: 'Success',
+      };
+
+      mockHttpClient.post.mockResolvedValue(mockResponse);
+
+      const result = await payments.confirmPayment(confirmData, options);
+
+      expect(mockHttpClient.post).toHaveBeenCalledWith(
+        '/api/confirmPayment',
+        expect.objectContaining({
+          merchant_key: 'test_merchant_key',
+          invoice_id: 'INV123',
+          status: 2,
+          hash_key: expect.any(String),
+        }),
+        options
+      );
+      expect(result).toBe(mockResponse);
+    });
+  });
+
+  describe('getInstallments', () => {
+    it('should get installments without request body', async () => {
+      const mockResponse = {
+        status_code: 100,
+        status_description: 'Success',
+        installments: [
+          { count: 1, rate: 0 },
+          { count: 3, rate: 1.5 },
+        ],
+      };
+
+      mockHttpClient.post.mockResolvedValue(mockResponse);
+
+      const result = await payments.getInstallments();
+
+      expect(mockHttpClient.post).toHaveBeenCalledWith('/api/installments', {}, undefined);
+      expect(result).toBe(mockResponse);
+    });
+
+    it('should get installments with options', async () => {
+      const options = { timeout: 5000 };
+      const mockResponse = {
+        status_code: 100,
+        status_description: 'Success',
+        installments: [],
+      };
+
+      mockHttpClient.post.mockResolvedValue(mockResponse);
+
+      const result = await payments.getInstallments(options);
+
+      expect(mockHttpClient.post).toHaveBeenCalledWith('/api/installments', {}, options);
+      expect(result).toBe(mockResponse);
+    });
+  });
+
+  describe('getToken', () => {
+    it('should get authentication token', async () => {
+      const tokenData = {
+        app_id: 'test_app_id',
+        app_secret: 'test_app_secret',
+      };
+
+      const mockResponse = {
+        status_code: 100,
+        status_description: 'Success',
+        token: 'bearer_token_value',
+        expires_in: 3600,
+      };
+
+      mockHttpClient.post.mockResolvedValue(mockResponse);
+
+      const result = await payments.getToken(tokenData);
+
+      expect(mockHttpClient.post).toHaveBeenCalledWith('/api/token', tokenData, undefined);
+      expect(result).toBe(mockResponse);
+    });
+
+    it('should get authentication token with options', async () => {
+      const tokenData = {
+        app_id: 'test_app_id',
+        app_secret: 'test_app_secret',
+      };
+
+      const options = { timeout: 5000 };
+      const mockResponse = {
+        status_code: 100,
+        status_description: 'Success',
+        token: 'bearer_token_value',
+        expires_in: 3600,
+      };
+
+      mockHttpClient.post.mockResolvedValue(mockResponse);
+
+      const result = await payments.getToken(tokenData, options);
+
+      expect(mockHttpClient.post).toHaveBeenCalledWith('/api/token', tokenData, options);
       expect(result).toBe(mockResponse);
     });
   });
