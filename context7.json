@@ -1,12 +1,10 @@
 {
   "$schema": "https://context7.com/schema/context7.json",
+  "url": "https://context7.com/muhammedaksam/sipay-node",
+  "public_key": "pk_DwLynWqxOvim0fveT9Rn0",
   "projectTitle": "Sipay Node.js SDK",
   "description": "Official Node.js TypeScript SDK for Sipay payment gateway supporting 2D/3D Secure payments, recurring payments, and branded solutions",
-  "folders": [
-    "examples/",
-    "src/types/",
-    ".github/"
-  ],
+  "folders": ["examples/", "src/types/", ".github/"],
   "excludeFolders": [
     "coverage/",
     "dist/",
