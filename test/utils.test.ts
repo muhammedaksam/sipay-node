@@ -746,7 +746,7 @@ describe('Utility Functions', () => {
         expect(Array.isArray(result)).toBe(true);
         expect(result).toHaveLength(5);
       }
-    }, 10000); // 10 second timeout for network request
+    }, 60000); // 60 second timeout for network request
 
     it('should parse pipe-separated decrypted hash_key data', () => {
       // Create a controlled test to trigger the pipe-parsing logic (lines 327-333)
