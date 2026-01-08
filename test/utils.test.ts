@@ -85,11 +85,12 @@ describe('Utility Functions', () => {
   });
 
   describe('validatePaymentData', () => {
+    const currentYear = new Date().getFullYear();
     const validPaymentData = {
       cc_holder_name: 'John Doe',
       cc_no: '4111111111111111',
       expiry_month: '12',
-      expiry_year: '2025',
+      expiry_year: (currentYear + 1).toString(),
       currency_code: 'TRY',
       invoice_id: 'INV123',
       total: 100,
@@ -133,11 +134,12 @@ describe('Utility Functions', () => {
     });
 
     it('should validate amount edge cases', () => {
+      const currentYear = new Date().getFullYear();
       const validBaseData = {
         cc_holder_name: 'John Doe',
         cc_no: '4111111111111111',
         expiry_month: '12',
-        expiry_year: '2025',
+        expiry_year: (currentYear + 1).toString(),
         currency_code: 'TRY',
         invoice_id: 'INV123',
         name: 'John',
@@ -183,11 +185,12 @@ describe('Utility Functions', () => {
     });
 
     it('should validate currency code edge cases', () => {
+      const currentYear = new Date().getFullYear();
       const validBaseData = {
         cc_holder_name: 'John Doe',
         cc_no: '4111111111111111',
         expiry_month: '12',
-        expiry_year: '2025',
+        expiry_year: (currentYear + 1).toString(),
         total: 100,
         invoice_id: 'INV123',
         name: 'John',
@@ -213,10 +216,11 @@ describe('Utility Functions', () => {
     });
 
     it('should validate expiry month edge cases', () => {
+      const currentYear = new Date().getFullYear();
       const validBaseData = {
         cc_holder_name: 'John Doe',
         cc_no: '4111111111111111',
-        expiry_year: '2025',
+        expiry_year: (currentYear + 1).toString(),
         currency_code: 'TRY',
         total: 100,
         invoice_id: 'INV123',
@@ -291,11 +295,12 @@ describe('Utility Functions', () => {
     });
 
     it('should handle missing optional fields gracefully', () => {
+      const currentYear = new Date().getFullYear();
       const minimalData = {
         cc_holder_name: 'John Doe',
         cc_no: '4111111111111111',
         expiry_month: '12',
-        expiry_year: '2025',
+        expiry_year: (currentYear + 1).toString(),
         currency_code: 'TRY',
         invoice_id: 'INV123',
         total: 100,
@@ -316,11 +321,12 @@ describe('Utility Functions', () => {
     });
 
     it('should validate with falsy but valid values', () => {
+      const currentYear = new Date().getFullYear();
       const dataWithFalsyValues = {
         cc_holder_name: 'John Doe',
         cc_no: '4111111111111111',
         expiry_month: '01', // Falsy but valid
-        expiry_year: '2025',
+        expiry_year: (currentYear + 1).toString(),
         currency_code: 'TRY',
         invoice_id: 'INV123',
         total: 100,
@@ -336,6 +342,7 @@ describe('Utility Functions', () => {
     });
 
     it('should validate expiry edge cases', () => {
+      const currentYear = new Date().getFullYear();
       const validBaseData = {
         cc_holder_name: 'John Doe',
         cc_no: '4111111111111111',
@@ -351,7 +358,7 @@ describe('Utility Functions', () => {
       let errors = validatePaymentData({
         ...validBaseData,
         expiry_month: 'invalid',
-        expiry_year: '2025',
+        expiry_year: (currentYear + 1).toString(),
       });
       expect(errors).toContain('Invalid expiry month');
 
@@ -359,7 +366,7 @@ describe('Utility Functions', () => {
       errors = validatePaymentData({
         ...validBaseData,
         expiry_month: '0',
-        expiry_year: '2025',
+        expiry_year: (currentYear + 1).toString(),
       });
       expect(errors).toContain('Invalid expiry month');
 
@@ -367,7 +374,7 @@ describe('Utility Functions', () => {
       errors = validatePaymentData({
         ...validBaseData,
         expiry_month: '13',
-        expiry_year: '2025',
+        expiry_year: (currentYear + 1).toString(),
       });
       expect(errors).toContain('Invalid expiry month');
 
@@ -413,7 +420,7 @@ describe('Utility Functions', () => {
       // Test with missing expiry_month (falsy - undefined)
       let errors = validatePaymentData({
         ...validBaseData,
-        expiry_year: '2025',
+        expiry_year: (currentYear + 1).toString(),
         // expiry_month is undefined - should not trigger validation
       });
       expect(errors).toContain('Missing required field: expiry_month');
@@ -432,7 +439,7 @@ describe('Utility Functions', () => {
       errors = validatePaymentData({
         ...validBaseData,
         expiry_month: null,
-        expiry_year: '2025',
+        expiry_year: (currentYear + 1).toString(),
       });
       expect(errors).toContain('Missing required field: expiry_month');
       expect(errors).not.toContain('Invalid expiry month');
@@ -679,11 +686,12 @@ describe('Utility Functions', () => {
         });
 
         // Make a test 2D payment that should return a hash_key in response
+        const currentYear = new Date().getFullYear();
         const response = await sipay.payments.pay2D({
           cc_holder_name: 'Test User',
           cc_no: '4111111111111111', // Test Visa card
           expiry_month: '12',
-          expiry_year: '2025',
+          expiry_year: (currentYear + 1).toString(),
           cvv: '123',
           currency_code: 'TRY',
           installments_number: 1,
