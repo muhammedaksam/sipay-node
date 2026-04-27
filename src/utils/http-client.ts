@@ -79,7 +79,13 @@ export class SipayHttpClient {
     }
 
     // Auto-inject app_lang from config if set and not already in data
-    if (this.config.appLang && data && typeof data === 'object' && !Array.isArray(data) && !data.app_lang) {
+    if (
+      this.config.appLang &&
+      data &&
+      typeof data === 'object' &&
+      !Array.isArray(data) &&
+      !data.app_lang
+    ) {
       data = { ...data, app_lang: this.config.appLang };
     }
 

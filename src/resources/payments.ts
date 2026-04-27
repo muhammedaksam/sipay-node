@@ -149,9 +149,7 @@ export class Payments extends SipayResource {
    * Get merchant active installments
    * POST /api/installments
    */
-  async getInstallments(
-    options?: RequestOptions
-  ): Promise<InstallmentsResponse> {
+  async getInstallments(options?: RequestOptions): Promise<InstallmentsResponse> {
     const data = { merchant_key: this.client['config'].merchantKey };
     return this.post('/api/installments', data, options) as any;
   }

@@ -149,10 +149,7 @@ describe('Recurring Resource', () => {
 
       const options = { timeout: 10000 };
 
-      await recurring.processPlan(
-        { merchant_id: '18309', plan_code: 'PLAN001' },
-        options
-      );
+      await recurring.processPlan({ merchant_id: '18309', plan_code: 'PLAN001' }, options);
 
       expect(mockHttpClient.post).toHaveBeenCalledWith(
         '/api/recurring/plan/process',

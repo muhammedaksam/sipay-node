@@ -245,10 +245,11 @@ describe('Payments Resource', () => {
 
   describe('refund', () => {
     it('should process refund with hash key generation', async () => {
-      const refundData: Omit<RefundRequest, 'merchant_key' | 'hash_key' | 'app_id' | 'app_secret'> = {
-        invoice_id: 'INV123',
-        amount: 50,
-      };
+      const refundData: Omit<RefundRequest, 'merchant_key' | 'hash_key' | 'app_id' | 'app_secret'> =
+        {
+          invoice_id: 'INV123',
+          amount: 50,
+        };
 
       const mockResponse = {
         status_code: 100,
