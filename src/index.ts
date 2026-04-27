@@ -62,6 +62,14 @@ export class Sipay {
   setToken(token: string): void {
     this.client.setToken(token);
   }
+
+  /**
+   * Get the is_3d value from the last authentication
+   * 0 = Non Secure only, 1 = Non Secure or 3D, 2 = 3D only, 4 = Branded
+   */
+  getIs3D(): number | undefined {
+    return this.client.getIs3D();
+  }
 }
 
 // Default export

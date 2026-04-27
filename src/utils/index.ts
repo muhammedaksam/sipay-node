@@ -131,6 +131,44 @@ export function generateConfirmPaymentHashKey(
 }
 
 /**
+ * Generate hash key for refund requests
+ * Order: amount, invoice_id, merchant_key
+ */
+export function generateRefundHashKey(
+  amount: number,
+  invoiceId: string,
+  merchantKey: string,
+  apiSecret: string
+): string {
+  const parts = [formatAmountForHash(amount), invoiceId, merchantKey];
+
+  return generateHashKey(parts, apiSecret);
+}
+
+/**
+ * Generate hash key for save card requests
+ * Order: merchant_key, customer_number, card_holder_name, expiry_month, expiry_year
+ */
+export function generateSaveCardHashKey(
+  merchantKey: string,
+  customerNumber: number,
+  cardHolderName: string,
+  expiryMonth: number,
+  expiryYear: number,
+  apiSecret: string
+): string {
+  const parts = [
+    merchantKey,
+    customerNumber.toString(),
+    cardHolderName,
+    expiryMonth.toString(),
+    expiryYear.toString(),
+  ];
+
+  return generateHashKey(parts, apiSecret);
+}
+
+/**
  * Generate hash key for payment requests
  * Exact 1:1 Node.js implementation of PHP's generateHashKey function
  * Matches: $total . '|' . $installment . '|' . $currency_code . '|' . $merchant_key . '|' . $invoice_id

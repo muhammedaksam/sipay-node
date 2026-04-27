@@ -40,7 +40,7 @@ describe('BrandedSolution Resource', () => {
           {
             name: 'Test Item',
             price: 100.0,
-            qnantity: 1,
+            quantity: 1,
             description: 'Test description',
           },
         ],
@@ -79,7 +79,7 @@ describe('BrandedSolution Resource', () => {
           {
             name: 'Test Item',
             price: 100.0,
-            qnantity: 1,
+            quantity: 1,
             description: 'Test description',
           },
         ],
@@ -105,7 +105,7 @@ describe('BrandedSolution Resource', () => {
           {
             name: 'Test Item',
             price: 100.0,
-            qnantity: 1,
+            quantity: 1,
             description: 'Test description',
           },
         ],

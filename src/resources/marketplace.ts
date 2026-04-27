@@ -26,7 +26,7 @@ export interface MarketplaceSaleRequest {
   items: Array<{
     name: string;
     price: number;
-    qnantity: number;
+    quantity: number;
     description: string;
     sub_merchant_key: string;
     sub_merchant_price: number;

@@ -763,4 +763,142 @@ describe('SipayHttpClient', () => {
       }
     });
   });
+
+  describe('app_lang auto-injection', () => {
+    it('should auto-inject app_lang when config has appLang set', async () => {
+      const configWithLang: SipayConfig = {
+        ...config,
+        appLang: 'tr',
+      };
+
+      jest.clearAllMocks();
+      mockedAxios.create.mockReturnValue(mockedAxios);
+
+      const client = new SipayHttpClient(configWithLang);
+      client.setToken('test_token');
+
+      const mockResponse = {
+        data: { status_code: 100, status_description: 'Success' },
+      };
+      mockedAxios.request.mockResolvedValueOnce(mockResponse);
+
+      await client.request('POST', '/api/test', { total: 100 });
+
+      expect(mockedAxios.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            total: 100,
+            app_lang: 'tr',
+          }),
+        })
+      );
+    });
+
+    it('should not override existing app_lang in request data', async () => {
+      const configWithLang: SipayConfig = {
+        ...config,
+        appLang: 'tr',
+      };
+
+      jest.clearAllMocks();
+      mockedAxios.create.mockReturnValue(mockedAxios);
+
+      const client = new SipayHttpClient(configWithLang);
+      client.setToken('test_token');
+
+      const mockResponse = {
+        data: { status_code: 100, status_description: 'Success' },
+      };
+      mockedAxios.request.mockResolvedValueOnce(mockResponse);
+
+      await client.request('POST', '/api/test', { total: 100, app_lang: 'en' });
+
+      expect(mockedAxios.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            total: 100,
+            app_lang: 'en', // Should keep the existing value
+          }),
+        })
+      );
+    });
+
+    it('should not inject app_lang when config does not have appLang', async () => {
+      jest.clearAllMocks();
+      mockedAxios.create.mockReturnValue(mockedAxios);
+
+      const client = new SipayHttpClient(config); // No appLang in config
+      client.setToken('test_token');
+
+      const mockResponse = {
+        data: { status_code: 100, status_description: 'Success' },
+      };
+      mockedAxios.request.mockResolvedValueOnce(mockResponse);
+
+      await client.request('POST', '/api/test', { total: 100 });
+
+      expect(mockedAxios.request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: { total: 100 }, // No app_lang added
+        })
+      );
+    });
+  });
+
+  describe('getIs3D', () => {
+    it('should return undefined before authentication', () => {
+      expect(httpClient.getIs3D()).toBeUndefined();
+    });
+
+    it('should return is_3d value after authentication', async () => {
+      mockedAxios.post.mockReset();
+      mockedAxios.post.mockResolvedValueOnce({
+        data: {
+          status_code: 100,
+          data: {
+            token: 'test_token',
+            is_3d: 2,
+          },
+        },
+      });
+
+      await httpClient.authenticate();
+
+      expect(httpClient.getIs3D()).toBe(2);
+    });
+
+    it('should store is_3d=0 for non-secure only merchants', async () => {
+      mockedAxios.post.mockReset();
+      mockedAxios.post.mockResolvedValueOnce({
+        data: {
+          status_code: 100,
+          data: {
+            token: 'test_token',
+            is_3d: 0,
+          },
+        },
+      });
+
+      await httpClient.authenticate();
+
+      expect(httpClient.getIs3D()).toBe(0);
+    });
+
+    it('should store is_3d=4 for branded merchants', async () => {
+      mockedAxios.post.mockReset();
+      mockedAxios.post.mockResolvedValueOnce({
+        data: {
+          status_code: 100,
+          data: {
+            token: 'test_token',
+            is_3d: 4,
+          },
+        },
+      });
+
+      await httpClient.authenticate();
+
+      expect(httpClient.getIs3D()).toBe(4);
+    });
+  });
 });

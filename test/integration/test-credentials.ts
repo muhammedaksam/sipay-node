@@ -91,12 +91,12 @@ export function generateInvoiceId(prefix = 'TEST'): string {
 
 // Helper function to create test items
 export function createTestItems(count = 1, unitPrice = 50.0) {
-  const items: { name: string; price: number; qnantity: number; description: string }[] = [];
+  const items: { name: string; price: number; quantity: number; description: string }[] = [];
   for (let i = 1; i <= count; i++) {
     items.push({
       name: `Test Product ${i}`,
       price: unitPrice,
-      qnantity: 1, // Note: keeping original typo from API
+      quantity: 1,
       description: `Test product ${i} description`,
     });
   }

@@ -16,14 +16,14 @@ describe('Commissions Resource', () => {
       merchantKey: 'test_merchant_key',
     }) as jest.Mocked<SipayHttpClient>;
 
-    // Mock HTTP client methods
-    mockHttpClient.get = jest.fn();
+    // Mock HTTP client methods — now POST instead of GET
+    mockHttpClient.post = jest.fn();
 
     commissions = new Commissions(mockHttpClient);
   });
 
   describe('getCommissions', () => {
-    it('should get commission information', async () => {
+    it('should get commission information via POST', async () => {
       const commissionData: CommissionRequest = {
         currency_code: 'TRY',
       };
@@ -32,17 +32,26 @@ describe('Commissions Resource', () => {
         status_code: 100,
         status_description: 'Success',
         data: {
-          currency_code: 'TRY',
-          commission_rate: 2.5,
-          minimum_commission: 0.5,
+          '1': [
+            {
+              title: 'VISA',
+              card_program: 'VISA',
+              merchant_commission_percentage: '2.5',
+              merchant_commission_fixed: '0',
+              user_commission_percentage: '0',
+              user_commission_fixed: '0',
+              currency_code: 'TRY',
+              installment: 1,
+            },
+          ],
         },
       };
 
-      mockHttpClient.get.mockResolvedValue(mockResponse);
+      mockHttpClient.post.mockResolvedValue(mockResponse);
 
       const result = await commissions.getCommissions(commissionData);
 
-      expect(mockHttpClient.get).toHaveBeenCalledWith(
+      expect(mockHttpClient.post).toHaveBeenCalledWith(
         '/api/commissions',
         commissionData,
         undefined
@@ -56,36 +65,35 @@ describe('Commissions Resource', () => {
       };
 
       const mockError = new Error('Commission query failed');
-      mockHttpClient.get.mockRejectedValue(mockError);
+      mockHttpClient.post.mockRejectedValue(mockError);
 
       await expect(commissions.getCommissions(commissionData)).rejects.toThrow(
         'Commission query failed'
       );
     });
 
-    it('should work with different currencies', async () => {
-      const currencies = ['TRY', 'USD', 'EUR'];
+    it('should work with commission_by parameter', async () => {
+      const commissionData: CommissionRequest = {
+        currency_code: 'TRY',
+        commission_by: 'merchant',
+      };
 
-      for (const currency of currencies) {
-        const commissionData: CommissionRequest = {
-          currency_code: currency,
-        };
+      const mockResponse = {
+        status_code: 100,
+        status_description: 'Success',
+        data: {},
+      };
 
-        const mockResponse = {
-          status_code: 100,
-          status_description: 'Success',
-          data: {
-            currency_code: currency,
-            commission_rate: 2.5,
-          },
-        };
+      mockHttpClient.post.mockResolvedValue(mockResponse);
 
-        mockHttpClient.get.mockResolvedValue(mockResponse);
+      const result = await commissions.getCommissions(commissionData);
 
-        const result = await commissions.getCommissions(commissionData);
-
-        expect(result.data?.currency_code).toBe(currency);
-      }
+      expect(mockHttpClient.post).toHaveBeenCalledWith(
+        '/api/commissions',
+        commissionData,
+        undefined
+      );
+      expect(result).toEqual(mockResponse);
     });
   });
 });
