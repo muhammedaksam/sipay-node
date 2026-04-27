@@ -9,6 +9,7 @@ export interface PaymentCompleteRequest {
   order_id: string;
   status: 'complete' | 'cancel';
   hash_key: string;
+  app_lang?: string;
 }
 
 export class PaymentCompletion extends SipayResource {

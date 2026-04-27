@@ -30,12 +30,11 @@ describe('Cashout Resource', () => {
   });
 
   describe('toBank', () => {
-    it('should initiate cashout to bank account', async () => {
+    it('should initiate cashout to bank account with generated hash', async () => {
       const mockResponse = { status_code: 100, status_description: 'Success' };
       mockHttpClient.post.mockResolvedValue(mockResponse);
 
       const cashoutData = {
-        invoice_id: 'INV123',
         cashout_type: 1,
         cashout_data: [
           {
@@ -56,11 +55,11 @@ describe('Cashout Resource', () => {
 
       expect(mockHttpClient.post).toHaveBeenCalledWith(
         '/api/cashout/tobank',
-        {
+        expect.objectContaining({
           ...cashoutData,
           merchant_key: 'test_merchant_key',
-          hash_key: 'TODO_IMPLEMENT_CASHOUT_HASH_GENERATION',
-        },
+          hash_key: expect.any(String),
+        }),
         undefined
       );
       expect(result).toBe(mockResponse);
@@ -71,7 +70,6 @@ describe('Cashout Resource', () => {
       mockHttpClient.post.mockResolvedValue(mockResponse);
 
       const cashoutData = {
-        invoice_id: 'INV124',
         cashout_type: 1,
         cashout_data: [
           {
@@ -114,7 +112,6 @@ describe('Cashout Resource', () => {
       mockHttpClient.post.mockResolvedValue(mockResponse);
 
       const cashoutData = {
-        invoice_id: 'INV125',
         cashout_type: 1,
         cashout_data: [
           {
@@ -143,7 +140,6 @@ describe('Cashout Resource', () => {
       mockHttpClient.post.mockRejectedValue(error);
 
       const cashoutData = {
-        invoice_id: 'INV123',
         cashout_type: 1,
         cashout_data: [
           {

@@ -38,7 +38,7 @@ describe('Marketplace Resource', () => {
         {
           name: 'Test Item',
           price: 100.0,
-          qnantity: 1,
+          quantity: 1,
           description: 'Test Description',
           sub_merchant_key: 'sub_merchant_123',
           sub_merchant_price: 100.0,
@@ -82,7 +82,7 @@ describe('Marketplace Resource', () => {
         {
           name: 'Test Item',
           price: 100.0,
-          qnantity: 1,
+          quantity: 1,
           description: 'Test Description',
           sub_merchant_key: 'sub_merchant_123',
           sub_merchant_price: 100.0,
@@ -129,7 +129,7 @@ describe('Marketplace Resource', () => {
         {
           name: 'Test Item',
           price: 100.0,
-          qnantity: 1,
+          quantity: 1,
           description: 'Test Description',
           sub_merchant_key: 'sub_merchant_123',
           sub_merchant_price: 100.0,
@@ -174,7 +174,7 @@ describe('Marketplace Resource', () => {
         {
           name: 'Test Item',
           price: 100.0,
-          qnantity: 1,
+          quantity: 1,
           description: 'Test Description',
           sub_merchant_key: 'sub_merchant_123',
           sub_merchant_price: 100.0,

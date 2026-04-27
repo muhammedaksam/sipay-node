@@ -43,11 +43,14 @@ describe('Cards Resource', () => {
       mockHttpClient.post.mockResolvedValue(mockResponse);
 
       const cardData: Omit<SaveCardRequest, 'merchant_key' | 'hash_key'> = {
-        customer_number: 'CUST123',
-        cc_holder_name: 'John Doe',
-        cc_no: '4111111111111111',
-        expiry_month: '12',
-        expiry_year: '2025',
+        customer_number: 123,
+        card_holder_name: 'John Doe',
+        card_number: 4111111111111111,
+        expiry_month: 12,
+        expiry_year: 2025,
+        customer_name: 'John Doe',
+        customer_email: 'john@example.com',
+        customer_phone: 5551234567,
       };
 
       const result = await cards.saveCard(cardData);
@@ -69,11 +72,14 @@ describe('Cards Resource', () => {
       mockHttpClient.post.mockResolvedValue(mockResponse);
 
       const cardData: Omit<SaveCardRequest, 'merchant_key' | 'hash_key'> = {
-        customer_number: 'CUST123',
-        cc_holder_name: 'John Doe',
-        cc_no: '4111111111111111',
-        expiry_month: '12',
-        expiry_year: '2025',
+        customer_number: 123,
+        card_holder_name: 'John Doe',
+        card_number: 4111111111111111,
+        expiry_month: 12,
+        expiry_year: 2025,
+        customer_name: 'John Doe',
+        customer_email: 'john@example.com',
+        customer_phone: 5551234567,
       };
 
       await cards.saveCard(cardData);
@@ -90,10 +96,10 @@ describe('Cards Resource', () => {
       mockHttpClient.post.mockResolvedValue(mockResponse);
 
       const editData: Omit<EditCardRequest, 'merchant_key' | 'hash_key'> = {
-        customer_number: 'CUST123',
-        cc_holder_name: 'John Doe Updated',
-        expiry_month: '06',
-        expiry_year: '2026',
+        customer_number: 123,
+        card_holder_name: 'John Doe Updated',
+        expiry_month: 6,
+        expiry_year: 2026,
         card_token: 'token123',
       };
 
@@ -118,7 +124,7 @@ describe('Cards Resource', () => {
       mockHttpClient.post.mockResolvedValue(mockResponse);
 
       const deleteData: Omit<DeleteCardRequest, 'merchant_key' | 'hash_key'> = {
-        customer_number: 'CUST123',
+        customer_number: 123,
         card_token: 'token123',
       };
 
@@ -146,13 +152,16 @@ describe('Cards Resource', () => {
         {
           name: 'Test Item',
           price: 100.0,
-          qnantity: 1,
+          quantity: 1,
           description: 'Test Description',
         },
       ];
 
       const paymentData: Omit<PayByCardTokenRequest, 'merchant_key' | 'hash_key'> = {
-        customer_number: 'CUST123',
+        customer_number: 123,
+        customer_email: 'john@example.com',
+        customer_phone: '+905551234567',
+        customer_name: 'John Doe',
         currency_code: 'TRY',
         invoice_id: 'INV123',
         invoice_description: 'Test payment',
@@ -160,8 +169,8 @@ describe('Cards Resource', () => {
         card_token: 'token123',
         installments_number: 1,
         items,
-        name: 'John',
-        surname: 'Doe',
+        cancel_url: 'https://example.com/cancel',
+        return_url: 'https://example.com/return',
       };
 
       const result = await cards.payByCardToken(paymentData);
@@ -186,22 +195,25 @@ describe('Cards Resource', () => {
         {
           name: 'Test Item',
           price: 100.0,
-          qnantity: 1,
+          quantity: 1,
           description: 'Test Description',
         },
       ];
 
       const paymentData: Omit<PayByCardTokenRequest, 'merchant_key' | 'hash_key'> = {
-        customer_number: 'CUST123',
+        customer_number: 123,
+        customer_email: 'john@example.com',
+        customer_phone: '+905551234567',
+        customer_name: 'John Doe',
         currency_code: 'TRY',
         invoice_id: 'INV123',
         invoice_description: 'Test payment',
         total: 100.0,
         // No installments_number - should default to 1
         items,
-        name: 'John',
-        surname: 'Doe',
         card_token: 'token123',
+        cancel_url: 'https://example.com/cancel',
+        return_url: 'https://example.com/return',
       };
 
       const result = await cards.payByCardToken(paymentData);
@@ -228,13 +240,16 @@ describe('Cards Resource', () => {
         {
           name: 'Test Item',
           price: 100.0,
-          qnantity: 1,
+          quantity: 1,
           description: 'Test Description',
         },
       ];
 
       const paymentData: Omit<PayByCardTokenRequest, 'merchant_key' | 'hash_key'> = {
-        customer_number: 'CUST123',
+        customer_number: 123,
+        customer_email: 'john@example.com',
+        customer_phone: '+905551234567',
+        customer_name: 'John Doe',
         currency_code: 'TRY',
         invoice_id: 'INV123',
         invoice_description: 'Test payment',
@@ -242,8 +257,8 @@ describe('Cards Resource', () => {
         card_token: 'token123',
         installments_number: 1,
         items,
-        name: 'John',
-        surname: 'Doe',
+        cancel_url: 'https://example.com/cancel',
+        return_url: 'https://example.com/return',
       };
 
       const result = await cards.payByCardTokenNonSecure(paymentData);
@@ -266,12 +281,12 @@ describe('Cards Resource', () => {
       const mockResponse = {
         status_code: 100,
         status_description: 'Success',
-        data: { tokens: [] },
+        data: [],
       };
       mockHttpClient.get.mockResolvedValue(mockResponse);
 
       const requestData: Omit<GetCardTokensRequest, 'merchant_key'> = {
-        customer_number: 'CUST123',
+        customer_number: 123,
       };
 
       const result = await cards.getCardTokens(requestData);
@@ -291,8 +306,11 @@ describe('Cards Resource', () => {
       const mockResponse = { status_code: 100, status_description: 'Success' };
       mockHttpClient.post.mockResolvedValue(mockResponse);
 
-      const paymentData = {
-        customer_number: 'CUST123',
+      const paymentData: Omit<PayByCardTokenRequest, 'merchant_key' | 'hash_key'> = {
+        customer_number: 123,
+        customer_email: 'john@example.com',
+        customer_phone: '+905551234567',
+        customer_name: 'John Doe',
         card_token: 'token123',
         currency_code: 'TRY',
         // No installments_number - should default to 1
@@ -303,12 +321,12 @@ describe('Cards Resource', () => {
           {
             name: 'Test Item',
             price: 100.0,
-            qnantity: 1,
+            quantity: 1,
             description: 'Test Description',
           },
         ],
-        name: 'John',
-        surname: 'Doe',
+        cancel_url: 'https://example.com/cancel',
+        return_url: 'https://example.com/return',
       };
 
       const result = await cards.payByCardTokenNonSecure(paymentData);
@@ -332,11 +350,14 @@ describe('Cards Resource', () => {
       mockHttpClient.post.mockRejectedValue(error);
 
       const cardData: Omit<SaveCardRequest, 'merchant_key' | 'hash_key'> = {
-        customer_number: 'CUST123',
-        cc_holder_name: 'John Doe',
-        cc_no: '4111111111111111',
-        expiry_month: '12',
-        expiry_year: '2025',
+        customer_number: 123,
+        card_holder_name: 'John Doe',
+        card_number: 4111111111111111,
+        expiry_month: 12,
+        expiry_year: 2025,
+        customer_name: 'John Doe',
+        customer_email: 'john@example.com',
+        customer_phone: 5551234567,
       };
 
       await expect(cards.saveCard(cardData)).rejects.toThrow('API Error');
