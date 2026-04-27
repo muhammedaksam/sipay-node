@@ -14,6 +14,7 @@ export class SipayHttpClient {
   private client: AxiosInstance;
   private config: SipayConfig;
   private token?: string;
+  private is3D?: number;
 
   constructor(config: SipayConfig) {
     this.config = {
@@ -57,6 +58,7 @@ export class SipayHttpClient {
 
       if (response.data.status_code === 100 && response.data.data?.token) {
         this.token = response.data.data.token;
+        this.is3D = response.data.data.is_3d;
       } else {
         throw new Error(response.data.status_description || 'Authentication failed');
       }
@@ -74,6 +76,11 @@ export class SipayHttpClient {
     // Ensure we have a valid token before making requests
     if (!this.token && url !== '/api/token') {
       await this.authenticate();
+    }
+
+    // Auto-inject app_lang from config if set and not already in data
+    if (this.config.appLang && data && typeof data === 'object' && !Array.isArray(data) && !data.app_lang) {
+      data = { ...data, app_lang: this.config.appLang };
     }
 
     const config: AxiosRequestConfig = {
@@ -173,5 +180,13 @@ export class SipayHttpClient {
 
   setToken(token: string): void {
     this.token = token;
+  }
+
+  /**
+   * Get the is_3d value from the last authentication
+   * 0 = Non Secure only, 1 = Non Secure or 3D, 2 = 3D only, 4 = Branded
+   */
+  getIs3D(): number | undefined {
+    return this.is3D;
   }
 }

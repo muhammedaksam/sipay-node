@@ -22,6 +22,7 @@ import {
   generatePaymentHashKey,
   generateStatusHashKey,
   generateConfirmPaymentHashKey,
+  generateRefundHashKey,
 } from '../utils';
 
 export class Payments extends SipayResource {
@@ -120,22 +121,39 @@ export class Payments extends SipayResource {
 
   /**
    * Refund a payment
+   * Hash format: amount|invoice_id|merchant_key
    */
   async refund(
-    refundData: Omit<RefundRequest, 'merchant_key'>,
+    refundData: Omit<RefundRequest, 'merchant_key' | 'hash_key' | 'app_id' | 'app_secret'>,
     options?: RequestOptions
   ): Promise<SipayApiResponse<RefundResponse>> {
-    const data = this.addMerchantKey(refundData);
+    const data = this.addMerchantKey(refundData) as RefundRequest;
+
+    // Inject app_id and app_secret from config
+    data.app_id = this.client['config'].appId;
+    data.app_secret = this.client['config'].appSecret;
+
+    // Generate hash key for refund: amount|invoice_id|merchant_key
+    const hashKey = generateRefundHashKey(
+      data.amount,
+      data.invoice_id,
+      data.merchant_key,
+      this.client['config'].appSecret
+    );
+    data.hash_key = hashKey;
+
     return this.post('/api/refund', data, options);
   }
 
   /**
    * Get merchant active installments
-   * Note: This endpoint uses Bearer token authentication
+   * POST /api/installments
    */
-  async getInstallments(options?: RequestOptions): Promise<SipayApiResponse<InstallmentsResponse>> {
-    // This endpoint doesn't require request body, only headers with Bearer token
-    return this.post('/api/installments', {}, options);
+  async getInstallments(
+    options?: RequestOptions
+  ): Promise<InstallmentsResponse> {
+    const data = { merchant_key: this.client['config'].merchantKey };
+    return this.post('/api/installments', data, options) as any;
   }
 
   /**

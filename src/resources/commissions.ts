@@ -4,11 +4,12 @@ import { CommissionRequest, SipayApiResponse, RequestOptions, CommissionResponse
 export class Commissions extends SipayResource {
   /**
    * Get commission information for a currency
+   * POST /api/commissions
    */
   async getCommissions(
     commissionData: CommissionRequest,
     options?: RequestOptions
   ): Promise<SipayApiResponse<CommissionResponse>> {
-    return this.get('/api/commissions', commissionData, options);
+    return this.post('/api/commissions', commissionData, options);
   }
 }

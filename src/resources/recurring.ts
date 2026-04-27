@@ -1,13 +1,48 @@
 import { SipayResource } from './base';
-
-// Note: Recurring payment functionality is handled through the regular payment endpoints
-// by including recurring parameters (recurring_payment_number, recurring_payment_cycle,
-// recurring_payment_interval, recurring_web_hook_key) in the payment request.
-// See the Payment2DRequest and Payment3DRequest interfaces for these parameters.
+import {
+  SipayApiResponse,
+  RequestOptions,
+  RecurringQueryRequest,
+  RecurringQueryResponse,
+  RecurringPlanProcessRequest,
+  RecurringPlanProcessResponse,
+  RecurringPlanUpdateRequest,
+  RecurringPlanUpdateResponse,
+} from '../types';
 
 export class Recurring extends SipayResource {
-  // This class is maintained for backward compatibility but recurring functionality
-  // is now handled through the Payments resource with recurring parameters.
-  // Consider this class deprecated - use Payments.pay2D() or Payments.pay3D()
-  // with recurring parameters instead.
+  /**
+   * Query recurring payment details
+   * POST /api/recurringPlan/query
+   */
+  async queryPlan(
+    queryData: Omit<RecurringQueryRequest, 'merchant_key'>,
+    options?: RequestOptions
+  ): Promise<RecurringQueryResponse> {
+    const data = this.addMerchantKey(queryData);
+    return this.post('/api/recurringPlan/query', data, options) as any;
+  }
+
+  /**
+   * Check if a recurring plan has been processed
+   * POST /api/recurring/plan/process
+   */
+  async processPlan(
+    processData: RecurringPlanProcessRequest,
+    options?: RequestOptions
+  ): Promise<SipayApiResponse<RecurringPlanProcessResponse>> {
+    return this.post('/api/recurring/plan/process', processData, options);
+  }
+
+  /**
+   * Update a recurring plan (amount, status, payment number)
+   * POST /api/recurringPlan/update
+   */
+  async updatePlan(
+    updateData: Omit<RecurringPlanUpdateRequest, 'merchant_key'>,
+    options?: RequestOptions
+  ): Promise<SipayApiResponse<RecurringPlanUpdateResponse>> {
+    const data = this.addMerchantKey(updateData);
+    return this.post('/api/recurringPlan/update', data, options);
+  }
 }

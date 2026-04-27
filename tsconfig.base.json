@@ -4,7 +4,6 @@
     "module": "CommonJS",
     "lib": ["ES2020"],
     "types": ["node", "jest"],
-    "ignoreDeprecations": "6.0",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,

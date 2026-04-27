@@ -5,6 +5,7 @@ export interface SipayConfig {
   merchantKey: string;
   baseUrl?: string;
   timeout?: number;
+  appLang?: 'en' | 'tr';
 }
 
 export interface SipayApiResponse<T = any> {
@@ -26,7 +27,7 @@ export interface TokenResponse {
 export interface PaymentItem {
   name: string;
   price: number;
-  qnantity: number; // Note: keeping original typo from API
+  quantity: number;
   description: string;
 }
 
@@ -41,6 +42,27 @@ export interface BasePaymentRequest {
   name: string;
   surname: string;
   hash_key?: string;
+  // Transaction type and completion
+  transaction_type?: 'Auth' | 'PreAuth';
+  payment_completed_by?: 'merchant' | 'app';
+  // Commission parameters
+  commission_by?: string;
+  is_commission_from_user?: boolean;
+  // Billing address fields
+  bill_address1?: string;
+  bill_address2?: string;
+  bill_city?: string;
+  bill_postcode?: string;
+  bill_state?: string;
+  bill_country?: string;
+  bill_email?: string;
+  bill_phone?: string;
+  // Card and payment options
+  card_program?: string;
+  ip?: string;
+  metadata?: string;
+  sale_web_hook_key?: string;
+  app_lang?: string;
   // Recurring payment parameters (optional)
   recurring_payment_number?: number;
   recurring_payment_cycle?: string; // D = Day, M = Month, Y = Year
@@ -71,46 +93,69 @@ export interface Payment3DRequest extends BasePaymentRequest, CreditCardInfo {
   bill_phone: string;
   response_method: string;
   ip?: string; // Optional for 3D payments
+  // Agriculture payment fields
+  maturity_period?: number;
+  payment_frequency?: number;
 }
 
 export interface GetPosRequest {
   credit_card: string;
-  amount: string;
+  amount: number;
   currency_code: string;
   merchant_key: string;
-  is_2d?: number;
+  commission_by?: 'merchant' | 'user';
+  is_recurring?: boolean;
+  is_2d?: boolean;
+  app_lang?: string;
 }
 
 export interface PosInfo {
-  pos_id: string;
-  pos_name: string;
-  installments: InstallmentOption[];
-}
-
-export interface InstallmentOption {
-  installment: number;
-  rate: number;
-  amount: number;
+  pos_id: number;
+  campaign_id: number;
+  allocation_id: number;
+  installments_number: number;
+  card_type: string;
+  card_program: string;
+  card_scheme: string;
+  is_commercial: string;
+  payable_amount: number;
+  hash_key: string;
+  amount_to_be_paid: string;
+  currency_code: string;
+  currency_id: number;
+  title: string;
+  card_bank: string;
+  bank_code: string;
 }
 
 export interface OrderStatusRequest {
   merchant_key: string;
   invoice_id: string;
-  include_pending_status?: string;
+  include_pending_status?: boolean;
+  show_refund_info?: 'Y';
+  hash_key?: string;
+  app_lang?: string;
 }
 
 export interface RefundRequest {
   invoice_id: string;
   merchant_key: string;
-  amount: string;
+  amount: number;
+  app_id: string;
+  app_secret: string;
+  hash_key: string;
+  refund_transaction_id?: string;
+  refund_web_hook_key?: string;
+  app_lang?: string;
 }
 
 export interface ConfirmPaymentRequest {
   invoice_id: string;
   merchant_key: string;
-  status: number; // 1 = approved, 2 = abort
+  status: number; // 1 = confirmed, 2 = canceled
   hash_key: string;
-  total?: number; // If not provided or 0, entire amount is confirmed
+  total: number;
+  app_lang?: string;
 }
 
 export interface InstallmentsResponse {
@@ -119,37 +164,38 @@ export interface InstallmentsResponse {
   installments: number[];
 }
 
-// Payment response interfaces based on OpenAPI spec
+// Payment response interfaces based on API docs
 
 // 3D Payment response - direct response format (post-authentication callback)
 export interface Payment3DResponse {
-  sipay_status: number;
+  sipay_status: number | string;
   order_no: string;
   order_id: string;
   invoice_id: string;
-  status_code: number;
+  status_code: number | string;
   status_description: string;
-  sipay_payment_method: number;
+  sipay_payment_method: number | string;
   credit_card_no: string;
   transaction_type: string;
-  payment_status: number;
-  payment_method: number;
-  error_code: number;
+  payment_status: number | string;
+  payment_method: number | string;
+  error_code: number | string;
   error: string;
   auth_code: string;
-  merchant_commission?: number;
-  user_commission?: number;
-  merchant_commission_percentage?: number;
-  merchant_commission_fixed?: number;
-  installment: number;
-  amount: number;
-  payment_reason_code?: string;
-  payment_reason_code_detail?: string;
-  status: string;
+  merchant_commission?: number | string;
+  user_commission?: number | string;
+  merchant_commission_percentage?: number | string;
+  merchant_commission_fixed?: number | string;
+  installment: number | string;
+  amount: number | string;
+  payment_reason_code?: string | null;
+  payment_reason_code_detail?: string | null;
+  status?: string;
   hash_key: string;
   md_status?: string;
-  original_bank_error_code?: string;
-  original_bank_error_description?: string;
+  original_bank_error_code?: string | null;
+  original_bank_error_description?: string | null;
+  host_reference_id?: string;
 }
 
 // 2D Payment data nested inside SipayApiResponse
@@ -177,6 +223,7 @@ export interface Payment2DData {
   hash_key: string;
   original_bank_error_code?: string;
   original_bank_error_description?: string;
+  host_reference_id?: string;
 }
 
 // 2D Payment response follows SipayApiResponse<Payment2DData> format
@@ -216,6 +263,7 @@ export interface PaymentStatusResponse {
   settlement_date: string;
   installment: number;
   card_type: string;
+  refund_info?: any[];
   // Recurring payment fields (optional)
   recurring_id?: number;
   recurring_plan_code?: string;
@@ -224,41 +272,24 @@ export interface PaymentStatusResponse {
 }
 
 export interface RefundResponse {
-  sipay_status: string;
-  order_no: string;
-  order_id: string;
-  invoice_id: string;
-  status_code: string;
+  status_code: number;
   status_description: string;
-  sipay_payment_method: string;
-  transaction_type: string;
-  payment_status: string;
-  error_code: string;
-  error: string;
-  installment: string;
-  amount: string;
-  hash_key: string;
+  order_no: string;
+  invoice_id: string;
+  ref_no: string;
+  ref_number: string;
 }
 
 export interface GetTokenRequest {
   app_id: string;
   app_secret: string;
-}
-
-export interface RecurringQueryRequest {
-  merchant_key: string;
-  plan_code: string;
-  app_id: string;
-  app_secret: string;
-}
-
-export interface RecurringPlanProcessRequest {
-  merchant_id: string;
-  plan_code: string;
+  app_lang?: string;
 }
 
 export interface CommissionRequest {
   currency_code: string;
+  commission_by?: 'merchant' | 'user';
+  app_lang?: string;
 }
 
 export interface BrandedSolutionRequest {
@@ -293,20 +324,22 @@ export interface RequestOptions {
   headers?: Record<string, string>;
 }
 
-// Additional response interfaces based on OpenAPI spec and endpoint analysis
-
-export interface CommissionResponse {
-  commission_rate: number;
-  commission_amount: number;
+// Commission response — keys are installment numbers as strings
+export interface CommissionData {
+  title: string;
+  card_program: string;
+  merchant_commission_percentage: string | number;
+  merchant_commission_fixed: string | number;
+  user_commission_percentage: string | number;
+  user_commission_fixed: string | number;
   currency_code: string;
-  installments?: InstallmentCommission[];
+  installment: number;
+  pos_id?: number;
+  getpos_card_program?: string;
 }
 
-export interface InstallmentCommission {
-  installment_number: number;
-  commission_rate: number;
-  commission_amount: number;
-}
+/** Commission response: keys are installment numbers ("1", "2", ...) */
+export type CommissionResponse = Record<string, CommissionData[]>;
 
 export interface CashoutResponse {
   status: string;
@@ -318,53 +351,71 @@ export interface CashoutResponse {
 }
 
 export interface PaymentCompleteResponse {
-  status: string;
-  message: string;
+  sipay_status: number;
+  order_no: string;
   order_id: string;
   invoice_id: string;
-  transaction_status: string;
+  status_code: number;
+  status_description: string;
+  sipay_payment_method: number;
+  credit_card_no: string;
+  transaction_type: string;
+  payment_status: number;
+  payment_method: number;
+  error_code: number;
+  error: string;
+  auth_code: string;
+  installment: number;
+  amount: number;
+  payment_reason_code?: string;
+  payment_reason_code_detail?: string;
+  status: string;
+  hash_key: string;
+  original_bank_error_code?: string;
+  original_bank_error_description?: string;
 }
 
 export interface ConfirmPaymentResponse {
-  status: string;
-  message: string;
+  status_code: number;
+  status_description: string;
+  transaction_status: string;
   order_id: string;
   invoice_id: string;
-  transaction_amount?: number;
 }
 
 export interface SaveCardResponse {
-  status: string;
-  message: string;
+  status_code: number;
+  status_description: string;
   card_token: string;
-  masked_card: string;
-  card_type: string;
 }
 
-export interface CardTokensResponse {
-  status: string;
-  message: string;
-  cards: SavedCard[];
-}
+export type CardTokensResponse = SavedCard[];
 
 export interface SavedCard {
+  id: number;
   card_token: string;
-  masked_card: string;
-  card_type: string;
-  expiry_month: string;
-  expiry_year: string;
-  cc_holder_name: string;
+  card_user_key: string;
+  card_number: string;
+  merchant_id: number;
+  customer_number: string;
+  card_issuer_bank: string;
+  customer_name: string;
+  customer_email: string;
+  customer_phone: string;
+  bank_id: number;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface EditCardResponse {
-  status: string;
-  message: string;
+  status_code: number;
+  status_description: string;
   card_token: string;
 }
 
 export interface DeleteCardResponse {
-  status: string;
-  message: string;
+  status_code: number;
+  status_description: string;
 }
 
 export interface CardPaymentResponse {
@@ -384,9 +435,16 @@ export interface CardPaymentResponse {
   auth_code: string;
   merchant_commission?: number;
   user_commission?: number;
+  merchant_commission_percentage?: number;
+  merchant_commission_fixed?: number;
   installment: number;
   amount: number;
+  payment_reason_code?: string;
+  payment_reason_code_detail?: string;
   hash_key: string;
+  original_bank_error_code?: string;
+  original_bank_error_description?: string;
+  host_reference_id?: string;
 }
 
 // Marketplace response interfaces
@@ -555,6 +613,73 @@ export interface SubMerchantPFInfo {
   address: string;
   status: string;
   created_at: string;
+}
+
+// Recurring types
+export interface RecurringQueryRequest {
+  merchant_key: string;
+  plan_code: string;
+  recurring_number: number;
+  app_lang?: string;
+}
+
+export interface RecurringQueryResponse {
+  status_code: number;
+  message: string;
+  recurring_id: number;
+  plan_code: string;
+  currency: string;
+  currency_symbol: string;
+  first_amount: number;
+  recurring_amount: number;
+  total_amount: number;
+  payment_number: number;
+  payment_interval: number;
+  payment_cycle: string;
+  first_order_id: string;
+  merchant_id: number;
+  card_no: string;
+  next_action_date: string;
+  recurring_status: string;
+  transaction_date: string;
+  transactionHistories: RecurringTransactionHistory[];
+}
+
+export interface RecurringTransactionHistory {
+  id: number;
+  sale_recurring_id: number;
+  sale_id: number;
+  merchant_id: number;
+  sale_recurring_payment_schedule_id: number;
+  amount: number;
+  action_date: string;
+  status: string;
+  recurring_number: number;
+  attempts: number;
+  remarks: string | null;
+}
+
+export interface RecurringPlanProcessRequest {
+  merchant_id: string;
+  plan_code: string;
+}
+
+export interface RecurringPlanProcessResponse {
+  status_code: number;
+  message: string;
+}
+
+export interface RecurringPlanUpdateRequest {
+  merchant_key: string;
+  plan_code: string;
+  recurring_amount: string;
+  recurring_status: string;
+  recurring_payment_number: string;
+}
+
+export interface RecurringPlanUpdateResponse {
+  status_code: number;
+  message: string;
 }
 
 // Export status codes

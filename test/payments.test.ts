@@ -35,7 +35,7 @@ describe('Payments Resource', () => {
       {
         name: 'Test Item',
         price: 100.0,
-        qnantity: 1,
+        quantity: 1,
         description: 'Test description',
       },
     ],
@@ -66,7 +66,7 @@ describe('Payments Resource', () => {
       {
         name: 'Test Item',
         price: 100.0,
-        qnantity: 1,
+        quantity: 1,
         description: 'Test description',
       },
     ],
@@ -91,6 +91,7 @@ describe('Payments Resource', () => {
     (mockHttpClient as any)['config'] = {
       merchantKey: 'test_merchant_key',
       appSecret: 'test_app_secret',
+      appId: 'test_app_id',
     };
 
     payments = new Payments(mockHttpClient);
@@ -188,14 +189,14 @@ describe('Payments Resource', () => {
     it('should get POS information', async () => {
       const posData: Omit<GetPosRequest, 'merchant_key'> = {
         credit_card: '4111111111111111',
-        amount: '100.00',
+        amount: 100.0,
         currency_code: 'TRY',
       };
 
       const mockResponse = {
         status_code: 100,
         status_description: 'Success',
-        data: { pos_id: 'POS123' },
+        data: { pos_id: 1 },
       };
 
       mockHttpClient.post.mockResolvedValue(mockResponse);
@@ -216,7 +217,7 @@ describe('Payments Resource', () => {
 
   describe('checkStatus', () => {
     it('should check payment status', async () => {
-      const statusData: Omit<OrderStatusRequest, 'merchant_key'> = {
+      const statusData: Omit<OrderStatusRequest, 'merchant_key' | 'hash_key'> = {
         invoice_id: 'INV123',
       };
 
@@ -243,16 +244,16 @@ describe('Payments Resource', () => {
   });
 
   describe('refund', () => {
-    it('should process refund', async () => {
-      const refundData: Omit<RefundRequest, 'merchant_key'> = {
+    it('should process refund with hash key generation', async () => {
+      const refundData: Omit<RefundRequest, 'merchant_key' | 'hash_key' | 'app_id' | 'app_secret'> = {
         invoice_id: 'INV123',
-        amount: '50.00',
+        amount: 50,
       };
 
       const mockResponse = {
         status_code: 100,
         status_description: 'Refund successful',
-        data: { refund_id: 'REF123' },
+        data: { ref_no: 'REF123' },
       };
 
       mockHttpClient.post.mockResolvedValue(mockResponse);
@@ -263,7 +264,10 @@ describe('Payments Resource', () => {
         '/api/refund',
         expect.objectContaining({
           ...refundData,
-          merchant_key: expect.any(String),
+          merchant_key: 'test_merchant_key',
+          app_id: 'test_app_id',
+          app_secret: 'test_app_secret',
+          hash_key: expect.any(String),
         }),
         undefined
       );
@@ -280,7 +284,7 @@ describe('Payments Resource', () => {
           {
             name: 'Test Product',
             price: 100.0,
-            qnantity: 1,
+            quantity: 1,
             description: 'Test Product',
           },
         ],
@@ -335,6 +339,7 @@ describe('Payments Resource', () => {
       const confirmData = {
         invoice_id: 'INV123',
         status: 1, // 1 = approved
+        total: 100.0,
       };
 
       const mockResponse = {
@@ -352,6 +357,7 @@ describe('Payments Resource', () => {
           merchant_key: 'test_merchant_key',
           invoice_id: 'INV123',
           status: 1,
+          total: 100.0,
           hash_key: expect.any(String),
         }),
         undefined
@@ -363,6 +369,7 @@ describe('Payments Resource', () => {
       const confirmData = {
         invoice_id: 'INV123',
         status: 2, // 2 = abort
+        total: 100.0,
       };
 
       const options = { timeout: 5000 };
@@ -381,6 +388,7 @@ describe('Payments Resource', () => {
           merchant_key: 'test_merchant_key',
           invoice_id: 'INV123',
           status: 2,
+          total: 100.0,
           hash_key: expect.any(String),
         }),
         options
@@ -390,7 +398,7 @@ describe('Payments Resource', () => {
   });
 
   describe('getInstallments', () => {
-    it('should get installments without request body', async () => {
+    it('should get installments with merchant_key in body', async () => {
       const mockResponse = {
         status_code: 100,
         status_description: 'Success',
@@ -404,7 +412,11 @@ describe('Payments Resource', () => {
 
       const result = await payments.getInstallments();
 
-      expect(mockHttpClient.post).toHaveBeenCalledWith('/api/installments', {}, undefined);
+      expect(mockHttpClient.post).toHaveBeenCalledWith(
+        '/api/installments',
+        { merchant_key: 'test_merchant_key' },
+        undefined
+      );
       expect(result).toBe(mockResponse);
     });
 
@@ -420,7 +432,11 @@ describe('Payments Resource', () => {
 
       const result = await payments.getInstallments(options);
 
-      expect(mockHttpClient.post).toHaveBeenCalledWith('/api/installments', {}, options);
+      expect(mockHttpClient.post).toHaveBeenCalledWith(
+        '/api/installments',
+        { merchant_key: 'test_merchant_key' },
+        options
+      );
       expect(result).toBe(mockResponse);
     });
   });

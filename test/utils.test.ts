@@ -9,6 +9,8 @@ import {
   maskCardNumber,
   generatePaymentHashKey,
   generateConfirmPaymentHashKey,
+  generateRefundHashKey,
+  generateSaveCardHashKey,
   validateHashKey,
   generateServerFormatHashKey,
 } from '../src/utils';
@@ -96,7 +98,7 @@ describe('Utility Functions', () => {
       total: 100,
       name: 'John',
       surname: 'Doe',
-      items: [{ name: 'Product', price: 100, qnantity: 1, description: 'Test' }],
+      items: [{ name: 'Product', price: 100, quantity: 1, description: 'Test' }],
     };
 
     it('should pass validation for valid data', () => {
@@ -702,7 +704,7 @@ describe('Utility Functions', () => {
             {
               name: 'Test Item',
               price: 1.0,
-              qnantity: 1,
+              quantity: 1,
               description: 'Test item for integration test',
             },
           ],
@@ -860,6 +862,89 @@ describe('Utility Functions', () => {
     it('should generate different hashes for different inputs', () => {
       const hash1 = generateServerFormatHashKey('success', 100, 'INV123', 123, 'TRY', 'secret');
       const hash2 = generateServerFormatHashKey('failed', 100, 'INV123', 123, 'TRY', 'secret');
+
+      expect(hash1).not.toBe(hash2);
+    });
+  });
+
+  describe('generateRefundHashKey', () => {
+    it('should generate refund hash key with correct format', () => {
+      const hashKey = generateRefundHashKey(50.0, 'INV123', 'MERCHANT123', 'secret');
+
+      expect(hashKey).toBeDefined();
+      expect(typeof hashKey).toBe('string');
+      expect(hashKey).toContain(':');
+    });
+
+    it('should generate different hashes for different amounts', () => {
+      const hash1 = generateRefundHashKey(50.0, 'INV123', 'MERCHANT123', 'secret');
+      const hash2 = generateRefundHashKey(100.0, 'INV123', 'MERCHANT123', 'secret');
+
+      expect(hash1).not.toBe(hash2);
+    });
+
+    it('should generate different hashes for different invoice IDs', () => {
+      const hash1 = generateRefundHashKey(50.0, 'INV123', 'MERCHANT123', 'secret');
+      const hash2 = generateRefundHashKey(50.0, 'INV456', 'MERCHANT123', 'secret');
+
+      expect(hash1).not.toBe(hash2);
+    });
+
+    it('should generate different hashes for different merchant keys', () => {
+      const hash1 = generateRefundHashKey(50.0, 'INV123', 'MERCHANT_A', 'secret');
+      const hash2 = generateRefundHashKey(50.0, 'INV123', 'MERCHANT_B', 'secret');
+
+      expect(hash1).not.toBe(hash2);
+    });
+
+    it('should handle decimal amounts correctly', () => {
+      const hashKey = generateRefundHashKey(99.99, 'INV123', 'MERCHANT123', 'secret');
+
+      expect(hashKey).toBeDefined();
+      expect(typeof hashKey).toBe('string');
+    });
+  });
+
+  describe('generateSaveCardHashKey', () => {
+    it('should generate save card hash key with correct format', () => {
+      const hashKey = generateSaveCardHashKey('MERCHANT123', 456, 'John Doe', 12, 2026, 'secret');
+
+      expect(hashKey).toBeDefined();
+      expect(typeof hashKey).toBe('string');
+      expect(hashKey).toContain(':');
+    });
+
+    it('should generate different hashes for different merchant keys', () => {
+      const hash1 = generateSaveCardHashKey('MERCHANT_A', 456, 'John Doe', 12, 2026, 'secret');
+      const hash2 = generateSaveCardHashKey('MERCHANT_B', 456, 'John Doe', 12, 2026, 'secret');
+
+      expect(hash1).not.toBe(hash2);
+    });
+
+    it('should generate different hashes for different customer numbers', () => {
+      const hash1 = generateSaveCardHashKey('MERCHANT123', 100, 'John Doe', 12, 2026, 'secret');
+      const hash2 = generateSaveCardHashKey('MERCHANT123', 200, 'John Doe', 12, 2026, 'secret');
+
+      expect(hash1).not.toBe(hash2);
+    });
+
+    it('should generate different hashes for different card holder names', () => {
+      const hash1 = generateSaveCardHashKey('MERCHANT123', 456, 'John Doe', 12, 2026, 'secret');
+      const hash2 = generateSaveCardHashKey('MERCHANT123', 456, 'Jane Doe', 12, 2026, 'secret');
+
+      expect(hash1).not.toBe(hash2);
+    });
+
+    it('should generate different hashes for different expiry months', () => {
+      const hash1 = generateSaveCardHashKey('MERCHANT123', 456, 'John Doe', 6, 2026, 'secret');
+      const hash2 = generateSaveCardHashKey('MERCHANT123', 456, 'John Doe', 12, 2026, 'secret');
+
+      expect(hash1).not.toBe(hash2);
+    });
+
+    it('should generate different hashes for different expiry years', () => {
+      const hash1 = generateSaveCardHashKey('MERCHANT123', 456, 'John Doe', 12, 2025, 'secret');
+      const hash2 = generateSaveCardHashKey('MERCHANT123', 456, 'John Doe', 12, 2027, 'secret');
 
       expect(hash1).not.toBe(hash2);
     });
