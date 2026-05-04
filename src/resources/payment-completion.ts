@@ -71,7 +71,7 @@ export class PaymentCompletion extends SipayResource {
 
       return msgBundle.replace(/\//g, '__');
     } catch (error) {
-      throw new Error(`Payment completion hash key generation failed: ${error}`);
+      throw new Error(`Payment completion hash key generation failed: ${error}`, { cause: error });
     }
   }
 }
