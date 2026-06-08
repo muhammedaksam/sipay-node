@@ -68,6 +68,21 @@ describe('Status Code Helpers', () => {
       });
     });
 
+    it('should return complete info for card error status', () => {
+      const cardErrors = [
+        SipayStatusCode.MERCHANT_CARD_TRANSACTION_NOT_ALLOWED,
+        SipayStatusCode.CARD_PROGRAM_MISMATCH,
+      ];
+
+      cardErrors.forEach((code) => {
+        const info = getStatusCodeInfo(code);
+        expect(info.code).toBe(code);
+        expect(info.category).toBe(SipayStatusCategory.CARD_ERROR);
+        expect(info.isSuccess).toBe(false);
+        expect(info.isError).toBe(true);
+      });
+    });
+
     it('should return complete info for status without HTTP equivalent', () => {
       const info = getStatusCodeInfo(SipayStatusCode.ORDER_FAILED);
 

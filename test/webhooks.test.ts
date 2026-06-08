@@ -71,6 +71,28 @@ describe('SipayWebhooks', () => {
       expect(result).toHaveProperty('isValid');
       expect(typeof result.isValid).toBe('boolean');
     });
+
+    it('should return successful validation with valid hash key', () => {
+      const secretKey = 'test_secret_validation';
+      const hashKey = utils.generateServerFormatHashKey(
+        'success',
+        100.5,
+        'INV123',
+        456,
+        'TRY',
+        secretKey
+      );
+
+      const result = webhooks.validateHashKey(hashKey, secretKey);
+
+      expect(result.isValid).toBe(true);
+      expect(result.status).toBe('success');
+      expect(result.total).toBe(100.5);
+      expect(result.invoiceId).toBe('INV123');
+      expect(result.orderId).toBe(456);
+      expect(result.currencyCode).toBe('TRY');
+      expect(result.error).toBeUndefined();
+    });
   });
 
   describe('parseSalesWebhook', () => {
@@ -137,6 +159,20 @@ describe('SipayWebhooks', () => {
       expect(event.plan_code).toBe('162668699215UOjS');
       expect(event.status).toBe('Completed');
     });
+
+    it('should handle missing fields with defaults for recurring webhook', () => {
+      const event = webhooks.parseRecurringWebhook({});
+
+      expect(event.merchant_key).toBe('');
+      expect(event.invoice_id).toBe('');
+      expect(event.order_id).toBe('');
+      expect(event.product_price).toBe(0);
+      expect(event.plan_code).toBe('');
+      expect(event.recurring_number).toBe('');
+      expect(event.status).toBe('');
+      expect(event.attempts).toBe('');
+      expect(event.action_date).toBe('');
+    });
   });
 
   describe('parseRefundWebhook', () => {
@@ -156,6 +192,16 @@ describe('SipayWebhooks', () => {
       expect(event.amount).toBe(10.5);
       expect(event.status).toBe('Completed');
       expect(event.hash_key).toBe('test_hash');
+    });
+
+    it('should handle missing fields with defaults for refund webhook', () => {
+      const event = webhooks.parseRefundWebhook({});
+
+      expect(event.invoice_id).toBe('');
+      expect(event.order_id).toBe('');
+      expect(event.amount).toBe(0);
+      expect(event.status).toBe('');
+      expect(event.hash_key).toBe('');
     });
   });
 
@@ -199,6 +245,38 @@ describe('SipayWebhooks', () => {
   });
 
   describe('verifyChargebackWebhook', () => {
+    it('should return valid result for chargeback webhook with valid hash key', () => {
+      const appSecret = 'test_secret_chargeback';
+      const hashKey = utils.generateServerFormatHashKey(
+        'success',
+        100,
+        'INV123',
+        456,
+        'TRY',
+        appSecret
+      );
+
+      const payload: Partial<ChargebackWebhookEvent> = {
+        action: 'Chargeback Request',
+        invoice_id: 'INV123',
+        order_id: 'ORD456',
+        amount: 100,
+        currency: 'TRY',
+        event_date: '2026-05-06 09:34:36',
+        ref_no: 'REF789',
+        hash_key: hashKey,
+      };
+
+      const result = webhooks.verifyChargebackWebhook(payload, appSecret);
+
+      expect(result.isValid).toBe(true);
+      expect(result.event).toBeDefined();
+      expect(result.event!.invoice_id).toBe('INV123');
+      expect(result.validation).toBeDefined();
+      expect(result.validation!.isValid).toBe(true);
+      expect(result.error).toBeUndefined();
+    });
+
     it('should attempt to verify chargeback webhook', () => {
       const payload: Partial<ChargebackWebhookEvent> = {
         action: 'Chargeback Request',
@@ -257,6 +335,36 @@ describe('SipayWebhooks', () => {
   });
 
   describe('verifySalesWebhook', () => {
+    it('should return valid result for sales webhook with valid hash key', () => {
+      const appSecret = 'test_secret_sales';
+      const hashKey = utils.generateServerFormatHashKey(
+        'success',
+        100,
+        'INV123',
+        456,
+        'TRY',
+        appSecret
+      );
+
+      const payload = {
+        sipay_status: '1' as const,
+        order_no: '162754070457149',
+        invoice_id: '1627540702924',
+        status_code: '100',
+        payment_status: '1' as const,
+        hash_key: hashKey,
+      };
+
+      const result = webhooks.verifySalesWebhook(payload, appSecret);
+
+      expect(result.isValid).toBe(true);
+      expect(result.event).toBeDefined();
+      expect(result.event!.invoice_id).toBe('1627540702924');
+      expect(result.validation).toBeDefined();
+      expect(result.validation!.isValid).toBe(true);
+      expect(result.error).toBeUndefined();
+    });
+
     it('should attempt to verify sales webhook (validation may fail with mock data)', () => {
       const payload = {
         sipay_status: '1' as const,

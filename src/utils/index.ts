@@ -340,9 +340,9 @@ export function validateHashKey(
 
     const components = normalizedHashKey.split(':');
     if (components.length > 2) {
-      const iv = components[0] || '';
-      const saltHex = components[1] || '';
-      const encryptedMsg = components[2] || '';
+      const iv = components[0];
+      const saltHex = components[1];
+      const encryptedMsg = components[2];
 
       // Generate salt exactly like PHP: hash('sha256', $password . $salt)
       const saltWithPassword = createHash('sha256')

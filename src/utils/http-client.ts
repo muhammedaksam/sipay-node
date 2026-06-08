@@ -161,10 +161,7 @@ export class SipayHttpClient {
       const statusCode = errorData.status_code;
 
       sipayError.message =
-        errorData.status_description ||
-        errorData.message ||
-        getStatusDescription(statusCode) ||
-        'Unknown Sipay error';
+        errorData.status_description || errorData.message || getStatusDescription(statusCode);
       sipayError.status_code = statusCode;
       sipayError.status_description =
         errorData.status_description || getStatusDescription(statusCode);
