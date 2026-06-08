@@ -16,7 +16,9 @@ describe('Payments Resource', () => {
   let mockHttpClient: jest.Mocked<SipayHttpClient>;
 
   // Helper function to create complete 2D payment data
-  const create2DPaymentData = (overrides?: Partial<Omit<Payment2DRequest, 'merchant_key'>>) => ({
+  const create2DPaymentData = (
+    overrides?: Partial<Omit<Payment2DRequest, 'merchant_key' | 'hash_key'>>
+  ) => ({
     cc_holder_name: 'John Doe',
     cc_no: '4111111111111111',
     expiry_month: '12',
@@ -30,7 +32,7 @@ describe('Payments Resource', () => {
     cancel_url: 'https://example.com/cancel',
     return_url: 'https://example.com/return',
     ip: '127.0.0.1',
-    order_type: 'sale',
+    order_type: 1,
     items: [
       {
         name: 'Test Item',
@@ -45,7 +47,9 @@ describe('Payments Resource', () => {
   });
 
   // Helper function to create complete 3D payment data
-  const create3DPaymentData = (overrides?: Partial<Omit<Payment3DRequest, 'merchant_key'>>) => ({
+  const create3DPaymentData = (
+    overrides?: Partial<Omit<Payment3DRequest, 'merchant_key' | 'hash_key'>>
+  ) => ({
     cc_holder_name: 'John Doe',
     cc_no: '4111111111111111',
     expiry_month: '12',
@@ -58,7 +62,7 @@ describe('Payments Resource', () => {
     installments_number: 1,
     cancel_url: 'https://example.com/cancel',
     return_url: 'https://example.com/return',
-    order_type: 'sale',
+    order_type: 1,
     bill_email: 'test@example.com',
     bill_phone: '+901234567890',
     response_method: 'POST',
@@ -95,6 +99,36 @@ describe('Payments Resource', () => {
     };
 
     payments = new Payments(mockHttpClient);
+  });
+
+  describe('pay2D with insurance fields', () => {
+    it('should pass vpos_type and identity_number for insurance payments', async () => {
+      const paymentData = create2DPaymentData({
+        vpos_type: 'insurance',
+        identity_number: '12345678901',
+      });
+
+      const mockResponse = {
+        status_code: 100,
+        status_description: 'Success',
+      };
+
+      mockHttpClient.post.mockResolvedValue(mockResponse);
+
+      const result = await payments.pay2D(paymentData);
+
+      expect(mockHttpClient.post).toHaveBeenCalledWith(
+        '/api/paySmart2D',
+        expect.objectContaining({
+          vpos_type: 'insurance',
+          identity_number: '12345678901',
+          merchant_key: expect.any(String),
+          hash_key: expect.any(String),
+        }),
+        undefined
+      );
+      expect(result).toEqual(mockResponse);
+    });
   });
 
   describe('pay2D', () => {
@@ -160,7 +194,7 @@ describe('Payments Resource', () => {
   });
 
   describe('pay3D', () => {
-    it('should make 3D payment request', async () => {
+    it('should make 3D payment request with hash key generation', async () => {
       const paymentData = create3DPaymentData();
 
       const mockResponse = {
@@ -178,10 +212,36 @@ describe('Payments Resource', () => {
         expect.objectContaining({
           ...paymentData,
           merchant_key: expect.any(String),
+          hash_key: expect.any(String),
         }),
         undefined
       );
       expect(result).toEqual(mockResponse);
+    });
+
+    it('should default installments_number to 1 for 3D hash key generation', async () => {
+      const paymentData = create3DPaymentData();
+      delete (paymentData as any).installments_number;
+
+      const mockResponse = {
+        status_code: 100,
+        status_description: 'Success',
+      };
+
+      mockHttpClient.postForm.mockResolvedValue(mockResponse);
+
+      const result = await payments.pay3D(paymentData);
+
+      expect(mockHttpClient.postForm).toHaveBeenCalledWith(
+        '/api/paySmart3D',
+        expect.objectContaining({
+          ...paymentData,
+          merchant_key: expect.any(String),
+          hash_key: expect.any(String),
+        }),
+        undefined
+      );
+      expect(result).toBe(mockResponse);
     });
   });
 
@@ -278,19 +338,21 @@ describe('Payments Resource', () => {
 
   describe('pay', () => {
     it('should make payment request', async () => {
-      const paymentData = create2DPaymentData({
-        name: 'John',
-        surname: 'Doe',
-        items: [
-          {
-            name: 'Test Product',
-            price: 100.0,
-            quantity: 1,
-            description: 'Test Product',
-          },
-        ],
+      const paymentData = {
+        ...create2DPaymentData({
+          name: 'John',
+          surname: 'Doe',
+          items: [
+            {
+              name: 'Test Product',
+              price: 100.0,
+              quantity: 1,
+              description: 'Test Product',
+            },
+          ],
+        }),
         hash_key: 'test_hash_key',
-      });
+      };
 
       const mockResponse = {
         status_code: 100,
@@ -311,10 +373,10 @@ describe('Payments Resource', () => {
     });
 
     it('should make payment request with options', async () => {
-      const paymentData = create2DPaymentData({
-        items: [],
+      const paymentData = {
+        ...create2DPaymentData({ items: [] }),
         hash_key: 'test_hash',
-      });
+      };
 
       const options = { timeout: 5000 };
       const mockResponse = {
@@ -431,12 +493,31 @@ describe('Payments Resource', () => {
 
       mockHttpClient.post.mockResolvedValue(mockResponse);
 
-      const result = await payments.getInstallments(options);
+      const result = await payments.getInstallments(undefined, options);
 
       expect(mockHttpClient.post).toHaveBeenCalledWith(
         '/api/installments',
         { merchant_key: 'test_merchant_key' },
         options
+      );
+      expect(result).toBe(mockResponse);
+    });
+
+    it('should get installments with app_lang parameter', async () => {
+      const mockResponse = {
+        status_code: 100,
+        status_description: 'Success',
+        installments: [],
+      };
+
+      mockHttpClient.post.mockResolvedValue(mockResponse);
+
+      const result = await payments.getInstallments('tr');
+
+      expect(mockHttpClient.post).toHaveBeenCalledWith(
+        '/api/installments',
+        { merchant_key: 'test_merchant_key', app_lang: 'tr' },
+        undefined
       );
       expect(result).toBe(mockResponse);
     });

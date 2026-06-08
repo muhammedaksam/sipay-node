@@ -55,10 +55,23 @@ export class Payments extends SipayResource {
    * Returns HTML form that should be rendered and auto-submitted
    */
   async pay3D(
-    paymentData: Omit<Payment3DRequest, 'merchant_key'>,
+    paymentData: Omit<Payment3DRequest, 'merchant_key' | 'hash_key'>,
     options?: RequestOptions
   ): Promise<SipayApiResponse<Payment3DResponse>> {
-    const data = this.addMerchantKey(paymentData);
+    const data = this.addMerchantKey(paymentData) as Payment3DRequest;
+
+    // Generate hash key for 3D payment verification
+    const hashKey = generatePaymentHashKey(
+      data.total,
+      data.installments_number || 1,
+      data.currency_code,
+      this.client['config'].merchantKey,
+      data.invoice_id,
+      this.client['config'].appSecret
+    );
+
+    data.hash_key = hashKey;
+
     return this.postForm('/api/paySmart3D', data, options);
   }
 
@@ -149,8 +162,11 @@ export class Payments extends SipayResource {
    * Get merchant active installments
    * POST /api/installments
    */
-  async getInstallments(options?: RequestOptions): Promise<InstallmentsResponse> {
-    const data = { merchant_key: this.client['config'].merchantKey };
+  async getInstallments(appLang?: string, options?: RequestOptions): Promise<InstallmentsResponse> {
+    const data: Record<string, any> = { merchant_key: this.client['config'].merchantKey };
+    if (appLang) {
+      data.app_lang = appLang;
+    }
     return this.post('/api/installments', data, options) as any;
   }
 

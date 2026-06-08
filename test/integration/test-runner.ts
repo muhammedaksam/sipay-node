@@ -50,7 +50,7 @@ async function runPaymentTests() {
     const visaCard = TEST_CARDS.find((card) => card.type === 'Visa')!;
     const posInfo = await sipay.payments.getPos({
       credit_card: visaCard.number.substring(0, 6),
-      amount: '100.00',
+      amount: 100.0,
       currency_code: 'TRY',
     });
     // eslint-disable-next-line no-console
@@ -78,7 +78,7 @@ async function runPaymentTests() {
       cvv: visaCard.cvv,
       cancel_url: 'https://example.com/cancel',
       return_url: 'https://example.com/success',
-      order_type: 'sale',
+      order_type: 1,
       ip: '127.0.0.1',
     });
     // eslint-disable-next-line no-console
@@ -119,7 +119,7 @@ async function runPaymentTests() {
       cvv: visaCard.cvv,
       cancel_url: 'https://example.com/cancel',
       return_url: 'https://example.com/success',
-      order_type: 'sale',
+      order_type: 1,
       bill_email: 'test@example.com',
       bill_phone: '+905001234567',
       response_method: 'POST',
@@ -157,7 +157,7 @@ async function runPaymentTests() {
       cvv: masterCard.cvv,
       cancel_url: 'https://example.com/cancel',
       return_url: 'https://example.com/success',
-      order_type: 'sale',
+      order_type: 1,
       ip: '127.0.0.1',
     });
     // eslint-disable-next-line no-console
@@ -186,7 +186,7 @@ async function runPaymentTests() {
       cvv: troyCard.cvv,
       cancel_url: 'https://example.com/cancel',
       return_url: 'https://example.com/success',
-      order_type: 'sale',
+      order_type: 1,
       ip: '127.0.0.1',
     });
     // eslint-disable-next-line no-console
@@ -214,7 +214,7 @@ async function runPaymentTests() {
       cvv: visaCard.cvv,
       cancel_url: 'https://example.com/cancel',
       return_url: 'https://example.com/success',
-      order_type: 'sale',
+      order_type: 1,
       ip: '127.0.0.1',
     });
     // eslint-disable-next-line no-console

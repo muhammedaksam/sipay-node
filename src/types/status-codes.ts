@@ -277,7 +277,6 @@ export function getStatusCategory(statusCode: number): SipayStatusCategory {
     case SipayStatusCode.INVALID_MERCHANT_TYPE:
       return SipayStatusCategory.MERCHANT_ERROR;
 
-    case SipayStatusCode.CREDIT_CARD_BLOCKED:
     case SipayStatusCode.MERCHANT_CARD_TRANSACTION_NOT_ALLOWED:
     case SipayStatusCode.CARD_PROGRAM_MISMATCH:
     case SipayStatusCode.FOREIGN_CARDS_NOT_ALLOWED:

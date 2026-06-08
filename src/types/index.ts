@@ -63,6 +63,9 @@ export interface BasePaymentRequest {
   metadata?: string;
   sale_web_hook_key?: string;
   app_lang?: string;
+  // Insurance payment fields
+  vpos_type?: string;
+  identity_number?: string;
   // Recurring payment parameters (optional)
   recurring_payment_number?: number;
   recurring_payment_cycle?: string; // D = Day, M = Month, Y = Year
@@ -81,14 +84,14 @@ export interface CreditCardInfo {
 export interface Payment2DRequest extends BasePaymentRequest, CreditCardInfo {
   cancel_url: string;
   return_url: string;
-  order_type: string;
+  order_type: number;
   ip: string;
 }
 
 export interface Payment3DRequest extends BasePaymentRequest, CreditCardInfo {
   cancel_url: string;
   return_url: string;
-  order_type: string;
+  order_type: number;
   bill_email: string;
   bill_phone: string;
   response_method: string;
@@ -237,6 +240,14 @@ export interface BrandedSolutionResponse {
   order_id: string;
 }
 
+export interface PaymentLinkResponse {
+  status: boolean;
+  status_code: number;
+  success_message: string;
+  link: string;
+  order_id: string;
+}
+
 export interface PaymentStatusResponse {
   status_code: number;
   status_description: string;
@@ -294,15 +305,42 @@ export interface CommissionRequest {
 
 export interface BrandedSolutionRequest {
   merchant_key: string;
+  currency_code: string;
+  name: string;
+  surname: string;
+  // Invoice details (serialized to JSON internally)
   invoice_id: string;
   invoice_description: string;
   total: number;
-  currency_code: string;
   items: PaymentItem[];
-  name: string;
-  surname: string;
+  discount?: number;
+  coupon?: string | null;
   return_url?: string;
   cancel_url?: string;
+  response_method?: string;
+  // Billing address
+  bill_address1?: string;
+  bill_address2?: string;
+  bill_city?: string;
+  bill_postcode?: string;
+  bill_state?: string;
+  bill_country?: string;
+  bill_email?: string;
+  bill_phone?: string;
+  // Top-level parameters
+  max_installment?: number;
+  sale_web_hook_key?: string;
+  // Recurring parameters
+  order_type?: number;
+  recurring_payment_number?: number;
+  recurring_payment_cycle?: string;
+  recurring_payment_interval?: string;
+  recurring_web_hook_key?: string;
+  // Commission parameters
+  is_comission_from_user?: number;
+  commission_for_installment?: string;
+  show_installment_table?: boolean;
+  app_lang?: string;
 }
 
 export interface BrandedStatusRequest {

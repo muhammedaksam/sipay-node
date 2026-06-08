@@ -16,7 +16,8 @@ export interface SaveCardRequest {
   card_number: number;
   expiry_month: number;
   expiry_year: number;
-  customer_number: number;
+  /** Optional per API docs; defaults to 0 in hash if not provided */
+  customer_number?: number;
   customer_name: string;
   customer_email: string;
   customer_phone: number;
@@ -49,6 +50,7 @@ export interface DeleteCardRequest {
   app_lang?: string;
 }
 
+/** @see https://apidocs.sipay.com.tr/3d-secure-pay-by-card-token-26908142e0.md */
 export interface PayByCardTokenRequest {
   merchant_key: string;
   card_token: string;
@@ -77,18 +79,26 @@ export interface PayByCardTokenRequest {
   bill_postcode?: string;
   bill_state?: string;
   bill_country?: string;
+  /** Required for 3D Secure payByCardToken; optional for Non-Secure */
   bill_email?: string;
+  /** Required for 3D Secure payByCardToken; optional for Non-Secure */
   bill_phone?: string;
-  // Payment options
+  /** Required for Non-Secure payByCardTokenNonSecure; optional for 3D Secure */
   card_program?: string;
+  /** Required for Non-Secure payByCardTokenNonSecure; optional for 3D Secure */
   ip?: string;
   transaction_type?: string;
   sale_web_hook_key?: string;
   // Recurring parameters
+  /** If set to 1, recurring_payment_number/cycle/interval/web_hook_key become required */
   order_type?: number;
+  /** Required when order_type = 1 */
   recurring_payment_number?: number;
+  /** Required when order_type = 1. Values: D (Day), M (Month), Y (Year) */
   recurring_payment_cycle?: string;
+  /** Required when order_type = 1 */
   recurring_payment_interval?: string;
+  /** Required when order_type = 1 */
   recurring_web_hook_key?: string;
   app_lang?: string;
 }
@@ -109,7 +119,7 @@ export class Cards extends SipayResource {
     // Hash format: merchant_key|customer_number|card_holder_name|expiry_month|expiry_year
     const hashParts = [
       data.merchant_key,
-      data.customer_number.toString(),
+      (data.customer_number ?? 0).toString(),
       data.card_holder_name,
       data.expiry_month.toString(),
       data.expiry_year.toString(),

@@ -77,7 +77,7 @@ export default Sipay;
 
 // Named exports
 export * from './types';
-export { SipayHttpClient } from './utils/http-client';
+export { SipayHttpClient, SIPAY_TEST_URL, SIPAY_PROD_URL } from './utils/http-client';
 export { SipayResource } from './resources/base';
 export { Payments } from './resources/payments';
 export { Recurring } from './resources/recurring';
