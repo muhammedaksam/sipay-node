@@ -334,8 +334,8 @@ export function validateHashKey(
   }
 
   try {
-    // Replace underscores with forward slashes (PHP compatibility)
-    const normalizedHashKey = hashKey.replace(/_/g, '/');
+    // Replace double underscores with forward slashes
+    const normalizedHashKey = hashKey.replace(/__/g, '/');
     const password = createHash('sha1').update(secretKey).digest('hex');
 
     const components = normalizedHashKey.split(':');
@@ -347,17 +347,10 @@ export function validateHashKey(
       // Generate salt exactly like PHP: hash('sha256', $password . $salt)
       const saltWithPassword = createHash('sha256')
         .update(password + saltHex)
-        .digest('hex');
+        .digest('hex')
+        .slice(0, 32);
 
-      // Create decipher with proper parameters
-      // PHP's openssl_decrypt expects:
-      // - IV as raw ASCII bytes (16-char hex string treated as ASCII)
-      // - Key as binary from hex string (32 bytes for AES-256)
-      const decipher = createDecipheriv(
-        'aes-256-cbc',
-        Buffer.from(saltWithPassword, 'hex').slice(0, 32), // 32-byte key from hex
-        Buffer.from(iv, 'ascii') // IV: 16-char hex string as ASCII bytes
-      );
+      const decipher = createDecipheriv('aes-256-cbc', saltWithPassword, iv);
 
       let decrypted = decipher.update(encryptedMsg, 'base64', 'utf8');
       decrypted += decipher.final('utf8');

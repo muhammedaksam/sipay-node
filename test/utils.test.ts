@@ -630,10 +630,8 @@ describe('Utility Functions', () => {
     });
 
     it('should successfully validate a hash key with valid decryption', () => {
-      // Create a hash key that we know will decrypt to a valid format
       const secretKey = 'test_secret';
 
-      // Generate a valid hash key using our generateServerFormatHashKey function
       const hashKey = generateServerFormatHashKey(
         'success',
         100.5,
@@ -643,14 +641,19 @@ describe('Utility Functions', () => {
         secretKey
       );
 
-      // The validateHashKey function should handle this without throwing
       const result = validateHashKey(hashKey, secretKey);
 
-      // We expect it returns an array of 5 elements (even if decryption fails)
       expect(Array.isArray(result)).toBe(true);
       expect(result).toHaveLength(5);
 
-      // Test that decryption doesn't crash on various edge cases
+      // After the key derivation fix, decryption should succeed
+      const [status, total, invoiceId, orderId, currencyCode] = result;
+      expect(status).toBe('success');
+      expect(total).toBe(100.5);
+      expect(invoiceId).toBe('INV123');
+      expect(orderId).toBe(456);
+      expect(currencyCode).toBe('TRY');
+
       expect(() => validateHashKey('test:test:test', secretKey)).not.toThrow();
     });
 
@@ -820,10 +823,8 @@ describe('Utility Functions', () => {
     });
 
     it('should parse pipe-separated decrypted data correctly', () => {
-      // Test the pipe parsing logic by using generateServerFormatHashKey and then validateHashKey
       const secretKey = 'test_secret_pipe_parsing';
 
-      // Create a hash that should decrypt to a pipe-separated format
       const hashKey = generateServerFormatHashKey(
         'approved',
         150.75,
@@ -835,18 +836,16 @@ describe('Utility Functions', () => {
 
       const result = validateHashKey(hashKey, secretKey);
 
-      // Should parse the pipe-separated data correctly
       expect(Array.isArray(result)).toBe(true);
       expect(result).toHaveLength(5);
 
-      // At minimum, should have parsed some values (the exact format might vary)
-      // But the parsing logic should have been executed without errors
+      // After the key derivation fix, decryption should succeed and parse actual values
       const [status, total, invoiceId, orderId, currencyCode] = result;
-      expect(typeof status).toBe('string');
-      expect(typeof total).toBe('number');
-      expect(typeof invoiceId).toBe('string');
-      expect(typeof orderId).toBe('number');
-      expect(typeof currencyCode).toBe('string');
+      expect(status).toBe('approved');
+      expect(total).toBe(150.75);
+      expect(invoiceId).toBe('INV456');
+      expect(orderId).toBe(789);
+      expect(currencyCode).toBe('USD');
     });
   });
 
