@@ -44,11 +44,12 @@ describe('PaymentCompletion Resource', () => {
 
       expect(mockHttpClient.post).toHaveBeenCalledWith(
         '/payment/complete',
-        {
+        expect.objectContaining({
           ...completionData,
           merchant_key: 'test_merchant_key',
           hash_key: expect.any(String),
-        },
+          app_lang: 'en',
+        }),
         undefined
       );
       expect(result).toBe(mockResponse);
@@ -68,11 +69,12 @@ describe('PaymentCompletion Resource', () => {
 
       expect(mockHttpClient.post).toHaveBeenCalledWith(
         '/payment/complete',
-        {
+        expect.objectContaining({
           ...completionData,
           merchant_key: 'test_merchant_key',
           hash_key: expect.any(String),
-        },
+          app_lang: 'en',
+        }),
         undefined
       );
       expect(result).toBe(mockResponse);
@@ -115,8 +117,43 @@ describe('PaymentCompletion Resource', () => {
 
       expect(mockHttpClient.post).toHaveBeenCalledWith(
         '/payment/complete',
-        expect.any(Object),
+        expect.objectContaining({
+          invoice_id: 'INV123',
+          order_id: 'ORDER123',
+          status: 'complete',
+          merchant_key: 'test_merchant_key',
+          hash_key: expect.any(String),
+          app_lang: 'en',
+        }),
         options
+      );
+      expect(result).toBe(mockResponse);
+    });
+
+    it('should use provided app_lang when explicitly set', async () => {
+      const mockResponse = { status_code: 100, status_description: 'Success' };
+      mockHttpClient.post.mockResolvedValue(mockResponse);
+
+      const completionData = {
+        invoice_id: 'INV123',
+        order_id: 'ORDER123',
+        status: 'complete' as const,
+        app_lang: 'tr' as const,
+      };
+
+      const result = await paymentCompletion.completePayment(completionData);
+
+      expect(mockHttpClient.post).toHaveBeenCalledWith(
+        '/payment/complete',
+        expect.objectContaining({
+          invoice_id: 'INV123',
+          order_id: 'ORDER123',
+          status: 'complete',
+          app_lang: 'tr',
+          merchant_key: 'test_merchant_key',
+          hash_key: expect.any(String),
+        }),
+        undefined
       );
       expect(result).toBe(mockResponse);
     });

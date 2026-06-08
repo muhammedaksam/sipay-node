@@ -23,6 +23,11 @@ export class PaymentCompletion extends SipayResource {
   ): Promise<SipayApiResponse<PaymentCompleteResponse>> {
     const data = this.addMerchantKey(completionData) as PaymentCompleteRequest;
 
+    // Auto-inject app_lang from config if not provided (API requires it)
+    if (!data.app_lang) {
+      data.app_lang = this.client['config'].appLang || 'en';
+    }
+
     // Generate hash key using the payment completion format
     // Hash format: merchant_key|invoice_id|order_id|status
     const hashKey = this.generatePaymentCompletionHashKey(

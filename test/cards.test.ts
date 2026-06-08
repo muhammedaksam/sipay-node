@@ -88,6 +88,34 @@ describe('Cards Resource', () => {
       expect(callArgs.hash_key).toBeDefined();
       expect(callArgs.hash_key).not.toBe('');
     });
+
+    it('should handle save card without customer_number', async () => {
+      const mockResponse = { status_code: 100, status_description: 'Success' };
+      mockHttpClient.post.mockResolvedValue(mockResponse);
+
+      const cardData = {
+        card_holder_name: 'John Doe',
+        card_number: 4111111111111111,
+        expiry_month: 12,
+        expiry_year: 2025,
+        customer_name: 'John Doe',
+        customer_email: 'john@example.com',
+        customer_phone: 5551234567,
+      };
+
+      const result = await cards.saveCard(cardData);
+
+      expect(mockHttpClient.post).toHaveBeenCalledWith(
+        '/api/saveCard',
+        expect.objectContaining({
+          ...cardData,
+          merchant_key: 'test_merchant_key',
+          hash_key: expect.any(String),
+        }),
+        undefined
+      );
+      expect(result).toBe(mockResponse);
+    });
   });
 
   describe('editCard', () => {

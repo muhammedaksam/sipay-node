@@ -10,6 +10,9 @@ import {
   isRetryableStatus,
 } from '../types';
 
+export const SIPAY_TEST_URL = 'https://provisioning.sipay.com.tr/ccpayment';
+export const SIPAY_PROD_URL = 'https://app.sipay.com.tr/ccpayment';
+
 export class SipayHttpClient {
   private client: AxiosInstance;
   private config: SipayConfig;
@@ -18,7 +21,7 @@ export class SipayHttpClient {
 
   constructor(config: SipayConfig) {
     this.config = {
-      baseUrl: 'https://provisioning.sipay.com.tr/ccpayment',
+      baseUrl: SIPAY_TEST_URL,
       timeout: 80000,
       ...config,
     };
