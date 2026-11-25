@@ -1,11 +1,11 @@
 {
   "compilerOptions": {
-    "ignoreDeprecations": "6.0",
     "target": "ES2020",
-    "module": "CommonJS",
+    "module": "NodeNext",
     "lib": ["ES2022"],
     "types": ["node", "jest"],
     "strict": true,
+    "isolatedModules": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
@@ -13,7 +13,7 @@
     "declarationMap": true,
     "sourceMap": true,
     "removeComments": false,
-    "moduleResolution": "node",
+    "moduleResolution": "NodeNext",
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
