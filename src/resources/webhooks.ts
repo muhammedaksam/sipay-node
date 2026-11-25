@@ -4,6 +4,7 @@ import { validateHashKey } from '../utils';
 export interface SalesWebhookEvent {
   sipay_status: string;
   order_no: string;
+  order_id: string;
   invoice_id: string;
   status_code: string;
   status_description: string;
@@ -14,8 +15,17 @@ export interface SalesWebhookEvent {
   payment_method: '1' | '2' | '3'; // 1=Credit card, 2=Mobile, 3=Wallet
   error_code: string;
   error: string;
+  auth_code: string;
   status: string;
   hash_key: string;
+  md_status: string;
+  host_reference_id: string;
+  merchant_commission: string;
+  user_commission: string;
+  installment: string;
+  amount: string;
+  payment_reason_code: string;
+  payment_reason_code_detail: string;
 }
 
 export interface RecurringWebhookEvent {
@@ -26,7 +36,7 @@ export interface RecurringWebhookEvent {
   plan_code: string;
   recurring_number: string;
   status: string;
-  attempts: string;
+  attempts?: string;
   action_date: string;
 }
 
@@ -35,6 +45,7 @@ export interface RefundWebhookEvent {
   order_id: string;
   amount: number;
   status: string;
+  ref_no: string;
   hash_key: string;
 }
 
@@ -56,7 +67,7 @@ export interface WebhookValidationResult {
   status?: string;
   total?: number;
   invoiceId?: string;
-  orderId?: number;
+  orderId?: string;
   currencyCode?: string;
   error?: string;
 }
@@ -84,7 +95,7 @@ export class SipayWebhooks extends SipayResource {
 
       // If we got valid data back, consider it a successful validation
       const isValid =
-        status !== '' || total !== 0 || invoiceId !== '' || orderId !== 0 || currencyCode !== '';
+        status !== '' || total !== 0 || invoiceId !== '' || orderId !== '' || currencyCode !== '';
 
       return {
         isValid,
@@ -111,6 +122,7 @@ export class SipayWebhooks extends SipayResource {
     return {
       sipay_status: String(payload.sipay_status ?? ''),
       order_no: String(payload.order_no ?? ''),
+      order_id: String(payload.order_id ?? ''),
       invoice_id: String(payload.invoice_id ?? ''),
       status_code: String(payload.status_code ?? ''),
       status_description: String(payload.status_description ?? ''),
@@ -124,8 +136,17 @@ export class SipayWebhooks extends SipayResource {
         (String(payload.payment_method ?? '') as SalesWebhookEvent['payment_method']) || '1',
       error_code: String(payload.error_code ?? ''),
       error: String(payload.error ?? ''),
+      auth_code: String(payload.auth_code ?? ''),
       status: String(payload.status ?? ''),
       hash_key: String(payload.hash_key ?? ''),
+      md_status: String(payload.md_status ?? ''),
+      host_reference_id: String(payload.host_reference_id ?? ''),
+      merchant_commission: String(payload.merchant_commission ?? ''),
+      user_commission: String(payload.user_commission ?? ''),
+      installment: String(payload.installment ?? ''),
+      amount: String(payload.amount ?? ''),
+      payment_reason_code: String(payload.payment_reason_code ?? ''),
+      payment_reason_code_detail: String(payload.payment_reason_code_detail ?? ''),
     };
   }
 
@@ -157,8 +178,48 @@ export class SipayWebhooks extends SipayResource {
       order_id: String(payload.order_id ?? ''),
       amount: parseFloat(String(payload.amount ?? '')) || 0,
       status: String(payload.status ?? ''),
+      ref_no: String(payload.ref_no ?? ''),
       hash_key: String(payload.hash_key ?? ''),
     };
+  }
+
+  /**
+   * Verify refund webhook - validates hash and parses event
+   */
+  verifyRefundWebhook(
+    payload: Partial<RefundWebhookEvent> | null,
+    appSecret: string
+  ): {
+    isValid: boolean;
+    event?: RefundWebhookEvent;
+    validation?: WebhookValidationResult;
+    error?: string;
+  } {
+    try {
+      if (!payload) {
+        return { isValid: false, error: 'Refund webhook payload is null or undefined' };
+      }
+
+      const event = this.parseRefundWebhook(payload);
+
+      if (!event.hash_key) {
+        return { isValid: false, error: 'Missing hash key in refund webhook payload' };
+      }
+
+      const validation = this.validateHashKey(event.hash_key, appSecret);
+
+      return {
+        isValid: validation.isValid,
+        event: validation.isValid ? event : undefined,
+        validation,
+        error: validation.error,
+      };
+    } catch (error) {
+      return {
+        isValid: false,
+        error: `Refund webhook verification failed: ${(error as Error).message}`,
+      };
+    }
   }
 
   /**
