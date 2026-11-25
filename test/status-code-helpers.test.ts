@@ -8,7 +8,11 @@ import {
   isStatusInGroup,
   StatusCodeGroups,
 } from '../src/utils/status-code-helpers';
-import { SipayStatusCode, SipayStatusCategory } from '../src/types/status-codes';
+import {
+  SipayStatusCode,
+  SipayHttpStatusCode,
+  SipayStatusCategory,
+} from '../src/types/status-codes';
 
 describe('Status Code Helpers', () => {
   describe('getStatusCodeInfo', () => {
@@ -81,6 +85,33 @@ describe('Status Code Helpers', () => {
         expect(info.isSuccess).toBe(false);
         expect(info.isError).toBe(true);
       });
+    });
+
+    it('should return complete info for security decline and invalid callback URL codes', () => {
+      const securityInfo = getStatusCodeInfo(SipayStatusCode.DECLINED_FOR_SECURITY_REASON);
+      expect(securityInfo).toEqual({
+        code: 119,
+        description: 'Declined for security reason',
+        category: SipayStatusCategory.PAYMENT_ERROR,
+        isSuccess: false,
+        isError: true,
+        isRetryable: false,
+        httpEquivalent: 403,
+      });
+
+      const callbackInfo = getStatusCodeInfo(SipayStatusCode.INVALID_CALLBACK_URL);
+      expect(callbackInfo).toEqual({
+        code: 1049,
+        description: 'Invalid callback URL. Please use a whitelisted domain',
+        category: SipayStatusCategory.VALIDATION_ERROR,
+        isSuccess: false,
+        isError: true,
+        isRetryable: false,
+        httpEquivalent: 400,
+      });
+
+      expect(SipayHttpStatusCode.UNPROCESSABLE_ENTITY).toBe(422);
+      expect(SipayHttpStatusCode.INVALID_CALLBACK_URL).toBe(1049);
     });
 
     it('should return complete info for status without HTTP equivalent', () => {
@@ -203,12 +234,16 @@ describe('Status Code Helpers', () => {
       expect(StatusCodeGroups.VALIDATION_ERRORS).toContain(SipayStatusCode.BASIC_VALIDATION);
       expect(StatusCodeGroups.VALIDATION_ERRORS).toContain(SipayStatusCode.INVALID_CARD_NUMBER);
       expect(StatusCodeGroups.VALIDATION_ERRORS).toContain(SipayStatusCode.PRICE_TOTAL_MISMATCH);
+      expect(StatusCodeGroups.VALIDATION_ERRORS).toContain(SipayStatusCode.INVALID_CALLBACK_URL);
     });
 
     it('should contain payment error status codes', () => {
       expect(StatusCodeGroups.PAYMENT_ERRORS).toContain(SipayStatusCode.ORDER_FAILED);
       expect(StatusCodeGroups.PAYMENT_ERRORS).toContain(SipayStatusCode.REFUND_FAILED);
       expect(StatusCodeGroups.PAYMENT_ERRORS).toContain(SipayStatusCode.TRANSACTION_NOT_FOUND);
+      expect(StatusCodeGroups.PAYMENT_ERRORS).toContain(
+        SipayStatusCode.DECLINED_FOR_SECURITY_REASON
+      );
     });
 
     it('should contain merchant limit error status codes', () => {

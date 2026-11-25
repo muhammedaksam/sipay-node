@@ -11,7 +11,7 @@ export interface CashoutToBankRequest {
     name_surname: string;
     iban: string;
     name_of_bank?: string;
-    amount: number;
+    amount: number | string;
     currency: string;
     id_tc_kn: string;
     gsm_number: string;

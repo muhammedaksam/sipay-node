@@ -79,6 +79,17 @@ describe('SipayHttpClient', () => {
       });
     });
 
+    it('should forward app_lang during authentication when configured', async () => {
+      const clientWithLang = new SipayHttpClient({ ...config, appLang: 'tr' });
+      await clientWithLang.authenticate();
+
+      expect(mockedAxios.post).toHaveBeenCalledWith('/api/token', {
+        app_id: config.appId,
+        app_secret: config.appSecret,
+        app_lang: 'tr',
+      });
+    });
+
     it('should handle authentication failure', async () => {
       mockedAxios.post.mockResolvedValue({
         data: {

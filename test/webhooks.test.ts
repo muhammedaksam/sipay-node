@@ -89,9 +89,21 @@ describe('SipayWebhooks', () => {
       expect(result.status).toBe('success');
       expect(result.total).toBe(100.5);
       expect(result.invoiceId).toBe('INV123');
-      expect(result.orderId).toBe(456);
+      expect(result.orderId).toBe('456');
       expect(result.currencyCode).toBe('TRY');
       expect(result.error).toBeUndefined();
+    });
+
+    it('should validate URL-encoded hash key with VP-prefixed orderId', () => {
+      const encodedHash =
+        'ae07cf03e25c3e97%3A1edc%3APbvY__qIbES6eLQAd%2BMps%2B8610TMMy2c14trd24f2dymrtg__s1YSpBu8TomQDY4Fhg1i9V9fFwMMzr8mTYQbUHg%3D%3D';
+      const result = webhooks.validateHashKey(encodedHash, 'b46a67571aa1e7ef5641dc3fa6f1712a');
+
+      expect(result.isValid).toBe(true);
+      expect(result.status).toBe('Completed');
+      expect(result.total).toBe(100);
+      expect(result.invoiceId).toBe('PZ4OX6Y9IKLAHIB-1776690376');
+      expect(result.orderId).toBe('VP17766903768053394');
     });
   });
 
@@ -99,7 +111,8 @@ describe('SipayWebhooks', () => {
     it('should parse sales webhook payload correctly', () => {
       const payload: Partial<SalesWebhookEvent> = {
         sipay_status: '1',
-        order_no: '162754070457149',
+        order_no: 'VP17766903768053394',
+        order_id: 'VP17766903768053394',
         invoice_id: '1627540702924',
         status_code: '100',
         status_description: 'Approved',
@@ -110,20 +123,39 @@ describe('SipayWebhooks', () => {
         payment_method: '1',
         error_code: '100',
         error: 'Approved',
+        auth_code: 'P38522',
         status: 'Completed',
         hash_key: 'test_hash_key',
+        md_status: '1',
+        host_reference_id: '608300512593',
+        merchant_commission: '0.8000',
+        user_commission: '0.0000',
+        installment: '1',
+        amount: '800',
+        payment_reason_code: '',
+        payment_reason_code_detail: '',
       };
 
       const event = webhooks.parseSalesWebhook(payload);
 
       expect(event.sipay_status).toBe('1');
-      expect(event.order_no).toBe('162754070457149');
+      expect(event.order_no).toBe('VP17766903768053394');
+      expect(event.order_id).toBe('VP17766903768053394');
       expect(event.invoice_id).toBe('1627540702924');
       expect(event.status_code).toBe('100');
       expect(event.transaction_type).toBe('Auth');
       expect(event.payment_status).toBe('1');
       expect(event.payment_method).toBe('1');
+      expect(event.auth_code).toBe('P38522');
       expect(event.hash_key).toBe('test_hash_key');
+      expect(event.md_status).toBe('1');
+      expect(event.host_reference_id).toBe('608300512593');
+      expect(event.merchant_commission).toBe('0.8000');
+      expect(event.user_commission).toBe('0.0000');
+      expect(event.installment).toBe('1');
+      expect(event.amount).toBe('800');
+      expect(event.payment_reason_code).toBe('');
+      expect(event.payment_reason_code_detail).toBe('');
     });
 
     it('should handle missing fields with defaults', () => {
@@ -131,6 +163,16 @@ describe('SipayWebhooks', () => {
       const event = webhooks.parseSalesWebhook(payload);
 
       expect(event.sipay_status).toBe('');
+      expect(event.order_id).toBe('');
+      expect(event.auth_code).toBe('');
+      expect(event.md_status).toBe('');
+      expect(event.host_reference_id).toBe('');
+      expect(event.merchant_commission).toBe('');
+      expect(event.user_commission).toBe('');
+      expect(event.installment).toBe('');
+      expect(event.amount).toBe('');
+      expect(event.payment_reason_code).toBe('');
+      expect(event.payment_reason_code_detail).toBe('');
       expect(event.transaction_type).toBe('Auth');
       expect(event.payment_status).toBe('0');
       expect(event.payment_method).toBe('1');
@@ -182,6 +224,7 @@ describe('SipayWebhooks', () => {
         order_id: '15767887576675',
         amount: 10.5,
         status: 'Completed',
+        ref_no: '602800085396',
         hash_key: 'test_hash',
       };
 
@@ -191,6 +234,7 @@ describe('SipayWebhooks', () => {
       expect(event.order_id).toBe('15767887576675');
       expect(event.amount).toBe(10.5);
       expect(event.status).toBe('Completed');
+      expect(event.ref_no).toBe('602800085396');
       expect(event.hash_key).toBe('test_hash');
     });
 
@@ -201,7 +245,75 @@ describe('SipayWebhooks', () => {
       expect(event.order_id).toBe('');
       expect(event.amount).toBe(0);
       expect(event.status).toBe('');
+      expect(event.ref_no).toBe('');
       expect(event.hash_key).toBe('');
+    });
+  });
+
+  describe('verifyRefundWebhook', () => {
+    it('should return valid result for refund webhook with valid URL-encoded hash key', () => {
+      const appSecret = 'b46a67571aa1e7ef5641dc3fa6f1712a';
+      const payload: Partial<RefundWebhookEvent> = {
+        invoice_id: 'PZ4OX6Y9IKLAHIB-1776690376',
+        order_id: 'VP17766903768053394',
+        amount: 100,
+        status: 'Completed',
+        ref_no: '',
+        hash_key:
+          'ae07cf03e25c3e97%3A1edc%3APbvY__qIbES6eLQAd%2BMps%2B8610TMMy2c14trd24f2dymrtg__s1YSpBu8TomQDY4Fhg1i9V9fFwMMzr8mTYQbUHg%3D%3D',
+      };
+
+      const result = webhooks.verifyRefundWebhook(payload, appSecret);
+
+      expect(result.isValid).toBe(true);
+      expect(result.event).toBeDefined();
+      expect(result.event!.invoice_id).toBe('PZ4OX6Y9IKLAHIB-1776690376');
+      expect(result.validation?.orderId).toBe('VP17766903768053394');
+      expect(result.error).toBeUndefined();
+    });
+
+    it('should reject refund webhook with invalid hash key', () => {
+      const result = webhooks.verifyRefundWebhook(
+        { invoice_id: 'INV1', order_id: 'VP1', hash_key: 'iv:salt:bad' },
+        'app_secret'
+      );
+
+      expect(result.isValid).toBe(false);
+      expect(result.event).toBeUndefined();
+      expect(result.error).toBeDefined();
+    });
+
+    it('should reject refund webhook without hash key', () => {
+      const result = webhooks.verifyRefundWebhook(
+        { invoice_id: 'INV1', order_id: 'VP1' },
+        'app_secret'
+      );
+
+      expect(result.isValid).toBe(false);
+      expect(result.error).toBe('Missing hash key in refund webhook payload');
+    });
+
+    it('should handle null payload in refund webhook verification', () => {
+      const result = webhooks.verifyRefundWebhook(null, 'app_secret');
+
+      expect(result.isValid).toBe(false);
+      expect(result.error).toBe('Refund webhook payload is null or undefined');
+    });
+
+    it('should handle refund verification when validateHashKey throws', () => {
+      jest.spyOn(webhooks, 'validateHashKey').mockImplementation(() => {
+        throw new Error('Unexpected refund error');
+      });
+
+      const result = webhooks.verifyRefundWebhook(
+        { invoice_id: 'INV1', hash_key: 'some_hash' },
+        'app_secret'
+      );
+
+      expect(result.isValid).toBe(false);
+      expect(result.error).toBe('Refund webhook verification failed: Unexpected refund error');
+
+      jest.restoreAllMocks();
     });
   });
 

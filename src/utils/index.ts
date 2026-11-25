@@ -322,20 +322,21 @@ export function parseSipayError(error: any): { code: number; message: string } {
 export function validateHashKey(
   hashKey: string,
   secretKey: string
-): [string, number, string, number, string] {
+): [string, number, string, string, string] {
   let status = '';
   let currencyCode = '';
   let total = 0;
   let invoiceId = '';
-  let orderId = 0;
+  let orderId = '';
 
   if (!hashKey) {
     return [status, total, invoiceId, orderId, currencyCode];
   }
 
   try {
-    // Replace double underscores with forward slashes
-    const normalizedHashKey = hashKey.replace(/__/g, '/');
+    // URL-decode first (webhooks and redirect URLs may pass URL-encoded hash keys),
+    // then replace double underscores with forward slashes
+    const normalizedHashKey = decodeURIComponent(hashKey).replace(/__/g, '/');
     const password = createHash('sha1').update(secretKey).digest('hex');
 
     const components = normalizedHashKey.split(':');
@@ -344,13 +345,17 @@ export function validateHashKey(
       const saltHex = components[1];
       const encryptedMsg = components[2];
 
-      // Generate salt exactly like PHP: hash('sha256', $password . $salt)
+      // Generate salt key: first 32 UTF-8 chars of SHA256(SHA1(app_secret) + salt)
       const saltWithPassword = createHash('sha256')
         .update(password + saltHex)
         .digest('hex')
         .slice(0, 32);
 
-      const decipher = createDecipheriv('aes-256-cbc', saltWithPassword, iv);
+      const decipher = createDecipheriv(
+        'aes-256-cbc',
+        Buffer.from(saltWithPassword, 'utf8'),
+        Buffer.from(iv, 'utf8')
+      );
 
       let decrypted = decipher.update(encryptedMsg, 'base64', 'utf8');
       decrypted += decipher.final('utf8');
@@ -360,7 +365,7 @@ export function validateHashKey(
         status = array[0] || '0';
         total = parseFloat(array[1] || '0');
         invoiceId = array[2] || '0';
-        orderId = parseInt(array[3] || '0');
+        orderId = array[3] || '0';
         currencyCode = array[4] || '';
       }
     }
@@ -379,7 +384,7 @@ export function generateServerFormatHashKey(
   status: string,
   total: number,
   invoiceId: string,
-  orderId: number,
+  orderId: string | number,
   currencyCode: string,
   appSecret: string
 ): string {

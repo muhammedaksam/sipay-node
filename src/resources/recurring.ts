@@ -1,6 +1,5 @@
 import { SipayResource } from './base';
 import {
-  SipayApiResponse,
   RequestOptions,
   RecurringQueryRequest,
   RecurringQueryResponse,
@@ -20,7 +19,11 @@ export class Recurring extends SipayResource {
     options?: RequestOptions
   ): Promise<RecurringQueryResponse> {
     const data = this.addMerchantKey(queryData);
-    return this.post('/api/recurringPlan/query', data, options) as any;
+    return this.post(
+      '/api/recurringPlan/query',
+      data,
+      options
+    ) as unknown as RecurringQueryResponse;
   }
 
   /**
@@ -30,8 +33,12 @@ export class Recurring extends SipayResource {
   async processPlan(
     processData: RecurringPlanProcessRequest,
     options?: RequestOptions
-  ): Promise<SipayApiResponse<RecurringPlanProcessResponse>> {
-    return this.post('/api/recurring/plan/process', processData, options);
+  ): Promise<RecurringPlanProcessResponse> {
+    return this.post(
+      '/api/recurring/plan/process',
+      processData,
+      options
+    ) as unknown as RecurringPlanProcessResponse;
   }
 
   /**
@@ -41,8 +48,12 @@ export class Recurring extends SipayResource {
   async updatePlan(
     updateData: Omit<RecurringPlanUpdateRequest, 'merchant_key'>,
     options?: RequestOptions
-  ): Promise<SipayApiResponse<RecurringPlanUpdateResponse>> {
+  ): Promise<RecurringPlanUpdateResponse> {
     const data = this.addMerchantKey(updateData);
-    return this.post('/api/recurringPlan/update', data, options);
+    return this.post(
+      '/api/recurringPlan/update',
+      data,
+      options
+    ) as unknown as RecurringPlanUpdateResponse;
   }
 }

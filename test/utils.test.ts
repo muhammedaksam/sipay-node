@@ -609,17 +609,17 @@ describe('Utility Functions', () => {
   describe('validateHashKey', () => {
     it('should handle empty hash key', () => {
       const result = validateHashKey('', 'secret');
-      expect(result).toEqual(['', 0, '', 0, '']);
+      expect(result).toEqual(['', 0, '', '', '']);
     });
 
     it('should handle malformed hash key', () => {
       const result = validateHashKey('invalid-hash', 'secret');
-      expect(result).toEqual(['', 0, '', 0, '']);
+      expect(result).toEqual(['', 0, '', '', '']);
     });
 
     it('should handle hash key with insufficient components', () => {
       const result = validateHashKey('iv:salt', 'secret');
-      expect(result).toEqual(['', 0, '', 0, '']);
+      expect(result).toEqual(['', 0, '', '', '']);
     });
 
     it('should attempt to validate properly formatted hash', () => {
@@ -651,10 +651,49 @@ describe('Utility Functions', () => {
       expect(status).toBe('success');
       expect(total).toBe(100.5);
       expect(invoiceId).toBe('INV123');
-      expect(orderId).toBe(456);
+      expect(orderId).toBe('456');
       expect(currencyCode).toBe('TRY');
 
       expect(() => validateHashKey('test:test:test', secretKey)).not.toThrow();
+    });
+
+    it('should decrypt real Sipay payment hash_key with VP-prefixed orderId', () => {
+      const realPaymentHash =
+        '731092f9125b0a94:4678:3daVYe4QTo5HfV5n48E7Cb42u2LPIY0lpz+KP+ABA5aR0NxMKsBN11yuOx9IJtdR';
+      const appSecret = 'b46a67571aa1e7ef5641dc3fa6f1712a';
+
+      const [status, total, invoiceId, orderId, currencyCode] = validateHashKey(
+        realPaymentHash,
+        appSecret
+      );
+
+      expect(status).toBe('1');
+      expect(total).toBe(5);
+      expect(invoiceId).toBe('preauth-deneme12345');
+      expect(orderId).toBe('VP17743537462607531');
+      expect(currencyCode).toBe('TRY');
+    });
+
+    it('should URL-decode and decrypt real Sipay refund webhook hash_key', () => {
+      const encodedRefundHash =
+        'ae07cf03e25c3e97%3A1edc%3APbvY__qIbES6eLQAd%2BMps%2B8610TMMy2c14trd24f2dymrtg__s1YSpBu8TomQDY4Fhg1i9V9fFwMMzr8mTYQbUHg%3D%3D';
+      const appSecret = 'b46a67571aa1e7ef5641dc3fa6f1712a';
+
+      const [status, total, invoiceId, orderId, currencyCode] = validateHashKey(
+        encodedRefundHash,
+        appSecret
+      );
+
+      expect(status).toBe('Completed');
+      expect(total).toBe(100);
+      expect(invoiceId).toBe('PZ4OX6Y9IKLAHIB-1776690376');
+      expect(orderId).toBe('VP17766903768053394');
+      expect(currencyCode).toBe('');
+    });
+
+    it('should handle malformed percent-encoding without throwing', () => {
+      const result = validateHashKey('%E0%A4%A:salt:enc', 'secret');
+      expect(result).toEqual(['', 0, '', '', '']);
     });
 
     it('should handle hash key with pipe separator in decrypted data', () => {
@@ -713,6 +752,10 @@ describe('Utility Functions', () => {
           ],
           name: 'Test',
           surname: 'User',
+          bill_address1: 'Test Address',
+          bill_email: 'test@example.com',
+          bill_phone: '+905001234567',
+          ip: '127.0.0.1',
         });
 
         // Check the response structure
@@ -727,11 +770,11 @@ describe('Utility Functions', () => {
           // If decryption succeeds and contains pipes, we should get meaningful data
           // Check if any elements have actual values (indicating successful pipe parsing)
           const hasValidData = result.some((element, index) => {
-            if (index === 1 || index === 3) {
-              // These should be numbers
+            if (index === 1) {
+              // Total should be a number
               return typeof element === 'number' && element > 0;
             } else {
-              // These should be non-empty strings
+              // Other fields should be non-empty strings
               return typeof element === 'string' && element.length > 0;
             }
           });
@@ -742,7 +785,7 @@ describe('Utility Functions', () => {
             expect(typeof result[0]).toBe('string'); // status
             expect(typeof result[1]).toBe('number'); // total
             expect(typeof result[2]).toBe('string'); // invoiceId
-            expect(typeof result[3]).toBe('number'); // orderId
+            expect(typeof result[3]).toBe('string'); // orderId
             expect(typeof result[4]).toBe('string'); // currencyCode
           }
 
@@ -750,7 +793,7 @@ describe('Utility Functions', () => {
         } else {
           // If no hash_key in response, at least verify the function works with empty input
           const result = validateHashKey('', 'b46a67571aa1e7ef5641dc3fa6f1712a');
-          expect(result).toEqual(['', 0, '', 0, '']);
+          expect(result).toEqual(['', 0, '', '', '']);
         }
       } catch {
         // If integration test fails (network issues, API changes, etc.),
@@ -804,7 +847,7 @@ describe('Utility Functions', () => {
       expect(() => validateHashKey(malformedHash, 'secret')).not.toThrow();
 
       const result = validateHashKey(malformedHash, 'secret');
-      expect(result).toEqual(['', 0, '', 0, '']);
+      expect(result).toEqual(['', 0, '', '', '']);
     });
 
     it('should handle hash key that decrypts but has no pipe separators', () => {
@@ -817,7 +860,7 @@ describe('Utility Functions', () => {
 
       expect(Array.isArray(result)).toBe(true);
       expect(result).toHaveLength(5);
-      expect(result).toEqual(['', 0, '', 0, '']);
+      expect(result).toEqual(['', 0, '', '', '']);
     });
 
     it('should handle pipe-parsed data with empty fields triggering fallbacks', () => {
@@ -830,7 +873,7 @@ describe('Utility Functions', () => {
 
       expect(Array.isArray(result)).toBe(true);
       expect(result).toHaveLength(5);
-      expect(result).toEqual(['0', 0, '0', 0, '']);
+      expect(result).toEqual(['0', 0, '0', '0', '']);
     });
 
     it('should parse pipe-separated decrypted data correctly', () => {
@@ -840,7 +883,7 @@ describe('Utility Functions', () => {
         'approved',
         150.75,
         'INV456',
-        789,
+        'VP789',
         'USD',
         secretKey
       );
@@ -855,7 +898,7 @@ describe('Utility Functions', () => {
       expect(status).toBe('approved');
       expect(total).toBe(150.75);
       expect(invoiceId).toBe('INV456');
-      expect(orderId).toBe(789);
+      expect(orderId).toBe('VP789');
       expect(currencyCode).toBe('USD');
     });
   });

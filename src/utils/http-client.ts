@@ -54,10 +54,18 @@ export class SipayHttpClient {
 
   async authenticate(): Promise<void> {
     try {
-      const response = await this.client.post<SipayApiResponse<TokenResponse>>('/api/token', {
+      const payload: { app_id: string; app_secret: string; app_lang?: string } = {
         app_id: this.config.appId,
         app_secret: this.config.appSecret,
-      });
+      };
+      if (this.config.appLang) {
+        payload.app_lang = this.config.appLang;
+      }
+
+      const response = await this.client.post<SipayApiResponse<TokenResponse>>(
+        '/api/token',
+        payload
+      );
 
       if (response.data.status_code === 100 && response.data.data?.token) {
         this.token = response.data.data.token;

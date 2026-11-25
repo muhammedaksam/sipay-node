@@ -12,16 +12,17 @@ export interface InvoicePayload {
   return_url?: string;
   cancel_url?: string;
   response_method?: string;
+  sale_web_hook_key?: string;
   is_comission_from_user?: number;
   commission_for_installment?: string;
-  bill_address1?: string;
+  bill_address1: string;
   bill_address2?: string;
   bill_city?: string;
   bill_postcode?: string;
   bill_state?: string;
   bill_country?: string;
-  bill_email?: string;
-  bill_phone?: string;
+  bill_email: string;
+  bill_phone: string;
 }
 
 export interface PaymentLinkRequestBody {
@@ -61,6 +62,9 @@ export class BrandedSolution extends SipayResource {
       invoice_description: data.invoice_description,
       total: formatAmount(data.total),
       items: data.items,
+      bill_address1: data.bill_address1,
+      bill_email: data.bill_email,
+      bill_phone: data.bill_phone,
     };
 
     if (data.discount !== undefined) invoiceObj.discount = data.discount;
@@ -68,18 +72,16 @@ export class BrandedSolution extends SipayResource {
     if (data.return_url) invoiceObj.return_url = data.return_url;
     if (data.cancel_url) invoiceObj.cancel_url = data.cancel_url;
     if (data.response_method) invoiceObj.response_method = data.response_method;
+    if (data.sale_web_hook_key) invoiceObj.sale_web_hook_key = data.sale_web_hook_key;
     if (data.is_comission_from_user !== undefined)
       invoiceObj.is_comission_from_user = data.is_comission_from_user;
     if (data.commission_for_installment)
       invoiceObj.commission_for_installment = data.commission_for_installment;
-    if (data.bill_address1) invoiceObj.bill_address1 = data.bill_address1;
     if (data.bill_address2) invoiceObj.bill_address2 = data.bill_address2;
     if (data.bill_city) invoiceObj.bill_city = data.bill_city;
     if (data.bill_postcode) invoiceObj.bill_postcode = data.bill_postcode;
     if (data.bill_state) invoiceObj.bill_state = data.bill_state;
     if (data.bill_country) invoiceObj.bill_country = data.bill_country;
-    if (data.bill_email) invoiceObj.bill_email = data.bill_email;
-    if (data.bill_phone) invoiceObj.bill_phone = data.bill_phone;
 
     // Build the request body with the invoice JSON string
     const requestBody: PaymentLinkRequestBody = {
