@@ -59,6 +59,7 @@ function getHttpEquivalent(statusCode: number): number | undefined {
     case SipayStatusCode.INVALID_CHARACTER:
     case SipayStatusCode.INVALID_CARD_NUMBER:
     case SipayStatusCode.CANCELLATION_URL_SHOULD_NOT_BE_BLANK:
+    case SipayStatusCode.INVALID_CALLBACK_URL:
       return 400; // Bad Request
 
     case SipayStatusCode.INVALID_CREDENTIALS:
@@ -69,6 +70,7 @@ function getHttpEquivalent(statusCode: number): number | undefined {
     case SipayStatusCode.MERCHANT_NOT_ALLOWED_TOKEN_PAYMENT:
     case SipayStatusCode.MERCHANT_CARD_TRANSACTION_NOT_ALLOWED:
     case SipayStatusCode.FOREIGN_CARDS_NOT_ALLOWED:
+    case SipayStatusCode.DECLINED_FOR_SECURITY_REASON:
       return 403; // Forbidden
 
     case SipayStatusCode.MERCHANT_NOT_FOUND:
@@ -112,6 +114,7 @@ export const StatusCodeGroups = {
     SipayStatusCode.INVALID_CHARACTER,
     SipayStatusCode.INVALID_CARD_NUMBER,
     SipayStatusCode.CANCELLATION_URL_SHOULD_NOT_BE_BLANK,
+    SipayStatusCode.INVALID_CALLBACK_URL,
   ],
 
   PAYMENT_ERRORS: [
@@ -121,6 +124,7 @@ export const StatusCodeGroups = {
     SipayStatusCode.TRANSACTION_NOT_FOUND,
     SipayStatusCode.ORDER_NOT_YET_PROCESSED,
     SipayStatusCode.TRANSACTION_NOT_APPROVED,
+    SipayStatusCode.DECLINED_FOR_SECURITY_REASON,
   ],
 
   MERCHANT_LIMIT_ERRORS: [

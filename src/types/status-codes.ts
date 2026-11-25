@@ -16,9 +16,11 @@ export enum SipayHttpStatusCode {
   CONFLICT = 409,
   PRECONDITION_FAILED = 412,
   PAYLOAD_TOO_LARGE = 413,
+  UNPROCESSABLE_ENTITY = 422,
   INTERNAL_SERVER_ERROR = 500,
   NOT_IMPLEMENTED = 501,
   SERVICE_UNAVAILABLE = 503,
+  INVALID_CALLBACK_URL = 1049,
 }
 
 // Application Status Codes
@@ -115,9 +117,12 @@ export enum SipayStatusCode {
   INVALID_CARD_NUMBER = 108,
   FILE_PROCESSING_ERROR = 109,
   PARTIAL_RETURNS_NOT_ALLOWED = 110,
+  /** @deprecated Removed from latest Sipay status code documentation; kept for backwards compatibility */
   PARTIALLY_SUCCESSFUL = 112,
   INVOICE_ID_ALREADY_PROCESSED_ALT = 117,
+  DECLINED_FOR_SECURITY_REASON = 119,
   CANCELLATION_URL_SHOULD_NOT_BE_BLANK = 404,
+  INVALID_CALLBACK_URL = 1049,
 }
 
 // Status Code Descriptions
@@ -214,7 +219,9 @@ export const SipayStatusDescriptions: Record<SipayStatusCode, string> = {
     'Partial returns are not allowed for this transaction.',
   [SipayStatusCode.PARTIALLY_SUCCESSFUL]: 'Partially successful',
   [SipayStatusCode.INVOICE_ID_ALREADY_PROCESSED_ALT]: 'The invoice id already processed',
+  [SipayStatusCode.DECLINED_FOR_SECURITY_REASON]: 'Declined for security reason',
   [SipayStatusCode.CANCELLATION_URL_SHOULD_NOT_BE_BLANK]: 'Cancellation URL should not be blank',
+  [SipayStatusCode.INVALID_CALLBACK_URL]: 'Invalid callback URL. Please use a whitelisted domain',
 };
 
 // Status Code Categories
@@ -248,6 +255,7 @@ export function getStatusCategory(statusCode: number): SipayStatusCategory {
     case SipayStatusCode.INVALID_CHARACTER:
     case SipayStatusCode.INVALID_CARD_NUMBER:
     case SipayStatusCode.CANCELLATION_URL_SHOULD_NOT_BE_BLANK:
+    case SipayStatusCode.INVALID_CALLBACK_URL:
       return SipayStatusCategory.VALIDATION_ERROR;
 
     case SipayStatusCode.INVALID_CREDENTIALS:
@@ -263,6 +271,7 @@ export function getStatusCategory(statusCode: number): SipayStatusCategory {
     case SipayStatusCode.TRANSACTION_NOT_FOUND:
     case SipayStatusCode.ORDER_NOT_YET_PROCESSED:
     case SipayStatusCode.TRANSACTION_NOT_APPROVED:
+    case SipayStatusCode.DECLINED_FOR_SECURITY_REASON:
       return SipayStatusCategory.PAYMENT_ERROR;
 
     case SipayStatusCode.MERCHANT_NOT_FOUND:
