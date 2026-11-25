@@ -16,8 +16,7 @@ export interface SaveCardRequest {
   card_number: number;
   expiry_month: number;
   expiry_year: number;
-  /** Optional per API docs; defaults to 0 in hash if not provided */
-  customer_number?: number;
+  customer_number: number;
   customer_name: string;
   customer_email: string;
   customer_phone: number;
@@ -73,24 +72,22 @@ export interface PayByCardTokenRequest {
   return_url: string;
   hash_key: string;
   // Billing address fields
-  bill_address1?: string;
+  bill_address1: string;
   bill_address2?: string;
   bill_city?: string;
   bill_postcode?: string;
   bill_state?: string;
   bill_country?: string;
-  /** Required for 3D Secure payByCardToken; optional for Non-Secure */
-  bill_email?: string;
-  /** Required for 3D Secure payByCardToken; optional for Non-Secure */
-  bill_phone?: string;
-  /** Required for Non-Secure payByCardTokenNonSecure; optional for 3D Secure */
+  bill_email: string;
+  bill_phone: string;
+  /** Optional; valid values: WORLD, BONUS, MAXIMUM, BANKKART_COMBO, PARAF, AXESS, ADVANT, CARD_FNS */
   card_program?: string;
   /** Required for Non-Secure payByCardTokenNonSecure; optional for 3D Secure */
   ip?: string;
   transaction_type?: string;
   sale_web_hook_key?: string;
   // Recurring parameters
-  /** If set to 1, recurring_payment_number/cycle/interval/web_hook_key become required */
+  /** Required for Non-Secure; if set to 1, recurring_payment_number/cycle/interval/web_hook_key become required */
   order_type?: number;
   /** Required when order_type = 1 */
   recurring_payment_number?: number;
@@ -112,21 +109,21 @@ export class Cards extends SipayResource {
   async saveCard(
     cardData: Omit<SaveCardRequest, 'merchant_key' | 'hash_key'>,
     options?: RequestOptions
-  ): Promise<SipayApiResponse<SaveCardResponse>> {
+  ): Promise<SaveCardResponse> {
     const data = this.addMerchantKey(cardData) as SaveCardRequest;
 
     // Generate hash key for save card
     // Hash format: merchant_key|customer_number|card_holder_name|expiry_month|expiry_year
     const hashParts = [
       data.merchant_key,
-      (data.customer_number ?? 0).toString(),
+      data.customer_number.toString(),
       data.card_holder_name,
       data.expiry_month.toString(),
       data.expiry_year.toString(),
     ];
     data.hash_key = generateHashKey(hashParts, this.client['config'].appSecret);
 
-    return this.post('/api/saveCard', data, options);
+    return this.post('/api/saveCard', data, options) as unknown as SaveCardResponse;
   }
 
   /**
@@ -149,7 +146,7 @@ export class Cards extends SipayResource {
   async editCard(
     cardData: Omit<EditCardRequest, 'merchant_key' | 'hash_key'>,
     options?: RequestOptions
-  ): Promise<SipayApiResponse<EditCardResponse>> {
+  ): Promise<EditCardResponse> {
     const data = this.addMerchantKey(cardData) as EditCardRequest;
 
     // Generate hash key for edit card
@@ -157,7 +154,7 @@ export class Cards extends SipayResource {
     const hashParts = [data.merchant_key, data.customer_number.toString(), data.card_token];
     data.hash_key = generateHashKey(hashParts, this.client['config'].appSecret);
 
-    return this.post('/api/editCard', data, options);
+    return this.post('/api/editCard', data, options) as unknown as EditCardResponse;
   }
 
   /**
@@ -168,7 +165,7 @@ export class Cards extends SipayResource {
   async deleteCard(
     cardData: Omit<DeleteCardRequest, 'merchant_key' | 'hash_key'>,
     options?: RequestOptions
-  ): Promise<SipayApiResponse<DeleteCardResponse>> {
+  ): Promise<DeleteCardResponse> {
     const data = this.addMerchantKey(cardData) as DeleteCardRequest;
 
     // Generate hash key for delete card
@@ -176,7 +173,7 @@ export class Cards extends SipayResource {
     const hashParts = [data.merchant_key, data.customer_number.toString(), data.card_token];
     data.hash_key = generateHashKey(hashParts, this.client['config'].appSecret);
 
-    return this.post('/api/deleteCard', data, options);
+    return this.post('/api/deleteCard', data, options) as unknown as DeleteCardResponse;
   }
 
   /**
@@ -189,12 +186,14 @@ export class Cards extends SipayResource {
     options?: RequestOptions
   ): Promise<SipayApiResponse<CardPaymentResponse>> {
     const data = this.addMerchantKey(paymentData) as PayByCardTokenRequest;
+    const installments = data.installments_number || 1;
+    data.installments_number = installments;
 
     // Generate hash key for card token payment
     // Hash format: total|installments_number|currency_code|merchant_key|invoice_id
     const hashKey = generatePaymentHashKey(
       data.total,
-      data.installments_number || 1,
+      installments,
       data.currency_code,
       data.merchant_key,
       data.invoice_id,
@@ -215,12 +214,14 @@ export class Cards extends SipayResource {
     options?: RequestOptions
   ): Promise<SipayApiResponse<CardPaymentResponse>> {
     const data = this.addMerchantKey(paymentData) as PayByCardTokenRequest;
+    const installments = data.installments_number || 1;
+    data.installments_number = installments;
 
     // Generate hash key for non-secure card token payment
     // Hash format: total|installments_number|currency_code|merchant_key|invoice_id
     const hashKey = generatePaymentHashKey(
       data.total,
-      data.installments_number || 1,
+      installments,
       data.currency_code,
       data.merchant_key,
       data.invoice_id,

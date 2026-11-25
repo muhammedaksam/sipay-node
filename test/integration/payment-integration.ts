@@ -45,7 +45,7 @@ describe('Sipay Integration Tests', () => {
 
       const result = await sipay.payments.getPos({
         credit_card: visaCard.number.substring(0, 6),
-        amount: '100.00',
+        amount: 100.0,
         currency_code: 'TRY',
       });
 
@@ -73,6 +73,10 @@ describe('Sipay Integration Tests', () => {
         expiry_month: visaCard.expiry_month,
         expiry_year: visaCard.expiry_year,
         cvv: visaCard.cvv,
+        bill_address1: 'Test Address',
+        bill_email: 'test@example.com',
+        bill_phone: '+905001234567',
+        ip: '127.0.0.1',
       });
 
       expect(payment).toBeDefined();
@@ -98,6 +102,10 @@ describe('Sipay Integration Tests', () => {
         expiry_month: CURRENCY_TEST_CARD.expiry_month,
         expiry_year: CURRENCY_TEST_CARD.expiry_year,
         cvv: CURRENCY_TEST_CARD.cvv,
+        bill_address1: 'Test Address',
+        bill_email: 'test@example.com',
+        bill_phone: '+905001234567',
+        ip: '127.0.0.1',
       });
 
       expect(payment).toBeDefined();

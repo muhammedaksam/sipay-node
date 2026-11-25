@@ -82,20 +82,24 @@ export interface CreditCardInfo {
 }
 
 export interface Payment2DRequest extends BasePaymentRequest, CreditCardInfo {
-  cancel_url: string;
-  return_url: string;
-  order_type: number;
+  bill_address1: string;
+  bill_email: string;
+  bill_phone: string;
   ip: string;
+  cancel_url?: string;
+  return_url?: string;
+  order_type?: number;
 }
 
 export interface Payment3DRequest extends BasePaymentRequest, CreditCardInfo {
   cancel_url: string;
   return_url: string;
-  order_type: number;
+  bill_address1: string;
   bill_email: string;
   bill_phone: string;
-  response_method: string;
-  ip?: string; // Optional for 3D payments
+  ip: string;
+  order_type?: number;
+  response_method?: string;
   // Agriculture payment fields
   maturity_period?: number;
   payment_frequency?: number;
@@ -107,8 +111,8 @@ export interface GetPosRequest {
   currency_code: string;
   merchant_key: string;
   commission_by?: 'merchant' | 'user';
-  is_recurring?: boolean;
-  is_2d?: boolean;
+  is_recurring?: boolean | 0 | 1;
+  is_2d?: boolean | 0 | 1;
   app_lang?: string;
 }
 
@@ -134,6 +138,7 @@ export interface PosInfo {
 export interface OrderStatusRequest {
   merchant_key: string;
   invoice_id: string;
+  /** Whether to include pending transactions (defaults to false when omitted) */
   include_pending_status?: boolean;
   show_refund_info?: 'Y';
   hash_key?: string;
@@ -147,6 +152,7 @@ export interface RefundRequest {
   app_id: string;
   app_secret: string;
   hash_key: string;
+  /** Unique refund transaction ID (optional; API accepts empty string) */
   refund_transaction_id?: string;
   refund_web_hook_key?: string;
   app_lang?: string;
@@ -199,6 +205,10 @@ export interface Payment3DResponse {
   original_bank_error_code?: string | null;
   original_bank_error_description?: string | null;
   host_reference_id?: string;
+  /** Estimated ISO-8601 datetime by which a PreAuth transaction should be captured or cancelled */
+  authorization_expires_at?: string;
+  /** Number of days used to calculate authorization_expires_at for PreAuth transactions */
+  authorization_duration_days?: number;
 }
 
 // 2D Payment data nested inside SipayApiResponse
@@ -227,6 +237,10 @@ export interface Payment2DData {
   original_bank_error_code?: string;
   original_bank_error_description?: string;
   host_reference_id?: string;
+  /** Estimated ISO-8601 datetime by which a PreAuth transaction should be captured or cancelled */
+  authorization_expires_at?: string;
+  /** Number of days used to calculate authorization_expires_at for PreAuth transactions */
+  authorization_duration_days?: number;
 }
 
 // 2D Payment response follows SipayApiResponse<Payment2DData> format
@@ -319,14 +333,14 @@ export interface BrandedSolutionRequest {
   cancel_url?: string;
   response_method?: string;
   // Billing address
-  bill_address1?: string;
+  bill_address1: string;
   bill_address2?: string;
   bill_city?: string;
   bill_postcode?: string;
   bill_state?: string;
   bill_country?: string;
-  bill_email?: string;
-  bill_phone?: string;
+  bill_email: string;
+  bill_phone: string;
   // Top-level parameters
   max_installment?: number;
   sale_web_hook_key?: string;
@@ -461,8 +475,8 @@ export interface CardPaymentResponse {
   order_no: string;
   order_id: string;
   invoice_id: string;
-  status_code: number;
-  status_description: string;
+  status_code?: number;
+  status_description?: string;
   sipay_payment_method: number;
   credit_card_no: string;
   transaction_type: string;

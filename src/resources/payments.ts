@@ -34,11 +34,13 @@ export class Payments extends SipayResource {
     options?: RequestOptions
   ): Promise<SipayApiResponse<Payment2DResponse>> {
     const data = this.addMerchantKey(paymentData) as Payment2DRequest;
+    const installments = data.installments_number || 1;
+    data.installments_number = installments;
 
     // Generate hash key for payment verification
     const hashKey = generatePaymentHashKey(
       data.total,
-      data.installments_number || 1,
+      installments,
       data.currency_code,
       this.client['config'].merchantKey,
       data.invoice_id,
@@ -59,11 +61,13 @@ export class Payments extends SipayResource {
     options?: RequestOptions
   ): Promise<SipayApiResponse<Payment3DResponse>> {
     const data = this.addMerchantKey(paymentData) as Payment3DRequest;
+    const installments = data.installments_number || 1;
+    data.installments_number = installments;
 
     // Generate hash key for 3D payment verification
     const hashKey = generatePaymentHashKey(
       data.total,
-      data.installments_number || 1,
+      installments,
       data.currency_code,
       this.client['config'].merchantKey,
       data.invoice_id,
@@ -95,8 +99,12 @@ export class Payments extends SipayResource {
   async checkStatus(
     statusData: Omit<OrderStatusRequest, 'merchant_key' | 'hash_key'>,
     options?: RequestOptions
-  ): Promise<SipayApiResponse<PaymentStatusResponse>> {
-    const data = this.addMerchantKey(statusData);
+  ): Promise<PaymentStatusResponse> {
+    const data = this.addMerchantKey(statusData) as OrderStatusRequest;
+
+    if (data.include_pending_status === undefined) {
+      data.include_pending_status = false;
+    }
 
     // Generate hash key for status check
     const hashKey = generateStatusHashKey(
@@ -107,7 +115,7 @@ export class Payments extends SipayResource {
 
     data.hash_key = hashKey;
 
-    return this.post('/api/checkstatus', data, options);
+    return this.post('/api/checkstatus', data, options) as unknown as PaymentStatusResponse;
   }
 
   /**
@@ -116,8 +124,13 @@ export class Payments extends SipayResource {
   async confirmPayment(
     confirmData: Omit<ConfirmPaymentRequest, 'merchant_key' | 'hash_key'>,
     options?: RequestOptions
-  ): Promise<SipayApiResponse<ConfirmPaymentResponse>> {
+  ): Promise<ConfirmPaymentResponse> {
     const data = this.addMerchantKey(confirmData) as ConfirmPaymentRequest;
+
+    // Auto-inject app_lang from config if not provided (API requires it)
+    if (!data.app_lang) {
+      data.app_lang = this.client['config'].appLang || 'en';
+    }
 
     // Generate hash key for payment confirmation
     // Hash format: merchant_key|invoice_id|status
@@ -129,7 +142,7 @@ export class Payments extends SipayResource {
     );
     data.hash_key = hashKey;
 
-    return this.post('/api/confirmPayment', data, options);
+    return this.post('/api/confirmPayment', data, options) as unknown as ConfirmPaymentResponse;
   }
 
   /**
@@ -139,7 +152,7 @@ export class Payments extends SipayResource {
   async refund(
     refundData: Omit<RefundRequest, 'merchant_key' | 'hash_key' | 'app_id' | 'app_secret'>,
     options?: RequestOptions
-  ): Promise<SipayApiResponse<RefundResponse>> {
+  ): Promise<RefundResponse> {
     const data = this.addMerchantKey(refundData) as RefundRequest;
 
     // Inject app_id and app_secret from config
@@ -155,7 +168,7 @@ export class Payments extends SipayResource {
     );
     data.hash_key = hashKey;
 
-    return this.post('/api/refund', data, options);
+    return this.post('/api/refund', data, options) as unknown as RefundResponse;
   }
 
   /**

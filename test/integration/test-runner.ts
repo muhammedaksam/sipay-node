@@ -79,6 +79,9 @@ async function runPaymentTests() {
       cancel_url: 'https://example.com/cancel',
       return_url: 'https://example.com/success',
       order_type: 1,
+      bill_address1: 'Test Address',
+      bill_email: 'test@example.com',
+      bill_phone: '+905001234567',
       ip: '127.0.0.1',
     });
     // eslint-disable-next-line no-console
@@ -120,6 +123,7 @@ async function runPaymentTests() {
       cancel_url: 'https://example.com/cancel',
       return_url: 'https://example.com/success',
       order_type: 1,
+      bill_address1: 'Test Address',
       bill_email: 'test@example.com',
       bill_phone: '+905001234567',
       response_method: 'POST',
@@ -158,6 +162,9 @@ async function runPaymentTests() {
       cancel_url: 'https://example.com/cancel',
       return_url: 'https://example.com/success',
       order_type: 1,
+      bill_address1: 'Test Address',
+      bill_email: 'test@example.com',
+      bill_phone: '+905001234567',
       ip: '127.0.0.1',
     });
     // eslint-disable-next-line no-console
@@ -187,6 +194,9 @@ async function runPaymentTests() {
       cancel_url: 'https://example.com/cancel',
       return_url: 'https://example.com/success',
       order_type: 1,
+      bill_address1: 'Test Address',
+      bill_email: 'test@example.com',
+      bill_phone: '+905001234567',
       ip: '127.0.0.1',
     });
     // eslint-disable-next-line no-console
@@ -215,6 +225,9 @@ async function runPaymentTests() {
       cancel_url: 'https://example.com/cancel',
       return_url: 'https://example.com/success',
       order_type: 1,
+      bill_address1: 'Test Address',
+      bill_email: 'test@example.com',
+      bill_phone: '+905001234567',
       ip: '127.0.0.1',
     });
     // eslint-disable-next-line no-console

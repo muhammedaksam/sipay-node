@@ -29,6 +29,9 @@ describe('Payments Resource', () => {
     invoice_description: 'Test payment',
     total: 100.0,
     installments_number: 1,
+    bill_address1: '123 Main St',
+    bill_email: 'test@example.com',
+    bill_phone: '+901234567890',
     cancel_url: 'https://example.com/cancel',
     return_url: 'https://example.com/return',
     ip: '127.0.0.1',
@@ -63,8 +66,10 @@ describe('Payments Resource', () => {
     cancel_url: 'https://example.com/cancel',
     return_url: 'https://example.com/return',
     order_type: 1,
+    bill_address1: '123 Main St',
     bill_email: 'test@example.com',
     bill_phone: '+901234567890',
+    ip: '127.0.0.1',
     response_method: 'POST',
     items: [
       {
@@ -179,17 +184,37 @@ describe('Payments Resource', () => {
 
       const result = await payments.pay2D(paymentData);
 
-      // The hash key generation should use 1 as default for installments_number
+      // The hash key generation and payload should use 1 as default for installments_number
       expect(mockHttpClient.post).toHaveBeenCalledWith(
         '/api/paySmart2D',
         expect.objectContaining({
           ...paymentData,
+          installments_number: 1,
           merchant_key: expect.any(String),
           hash_key: expect.any(String),
         }),
         undefined
       );
       expect(result).toBe(mockResponse);
+    });
+
+    it('should return PreAuth authorization expiry fields when present', async () => {
+      const paymentData = create2DPaymentData({ transaction_type: 'PreAuth' });
+      const mockResponse = {
+        status_code: 100,
+        status_description: 'Payment process successful',
+        data: {
+          order_id: 'VP17743537462607531',
+          authorization_expires_at: '2026-05-15T10:00:00Z',
+          authorization_duration_days: 30,
+        },
+      };
+
+      mockHttpClient.post.mockResolvedValue(mockResponse);
+
+      const result = await payments.pay2D(paymentData);
+      expect(result.data?.authorization_expires_at).toBe('2026-05-15T10:00:00Z');
+      expect(result.data?.authorization_duration_days).toBe(30);
     });
   });
 
@@ -236,6 +261,7 @@ describe('Payments Resource', () => {
         '/api/paySmart3D',
         expect.objectContaining({
           ...paymentData,
+          installments_number: 1,
           merchant_key: expect.any(String),
           hash_key: expect.any(String),
         }),
@@ -251,6 +277,8 @@ describe('Payments Resource', () => {
         credit_card: '4111111111111111',
         amount: 100.0,
         currency_code: 'TRY',
+        is_recurring: 0,
+        is_2d: 1,
       };
 
       const mockResponse = {
@@ -276,7 +304,7 @@ describe('Payments Resource', () => {
   });
 
   describe('checkStatus', () => {
-    it('should check payment status', async () => {
+    it('should check payment status and default include_pending_status to false', async () => {
       const statusData: Omit<OrderStatusRequest, 'merchant_key' | 'hash_key'> = {
         invoice_id: 'INV123',
       };
@@ -284,10 +312,11 @@ describe('Payments Resource', () => {
       const mockResponse = {
         status_code: 100,
         status_description: 'Payment successful',
-        data: { status: 'completed' },
+        transaction_status: 'Completed',
+        order_id: 'VP123',
       };
 
-      mockHttpClient.post.mockResolvedValue(mockResponse);
+      mockHttpClient.post.mockResolvedValue(mockResponse as any);
 
       const result = await payments.checkStatus(statusData);
 
@@ -295,11 +324,29 @@ describe('Payments Resource', () => {
         '/api/checkstatus',
         expect.objectContaining({
           ...statusData,
+          include_pending_status: false,
           merchant_key: expect.any(String),
+          hash_key: expect.any(String),
         }),
         undefined
       );
       expect(result).toEqual(mockResponse);
+    });
+
+    it('should preserve explicit include_pending_status when provided', async () => {
+      const mockResponse = { status_code: 69, status_description: 'Pending' };
+      mockHttpClient.post.mockResolvedValue(mockResponse as any);
+
+      await payments.checkStatus({ invoice_id: 'INV123', include_pending_status: true });
+
+      expect(mockHttpClient.post).toHaveBeenCalledWith(
+        '/api/checkstatus',
+        expect.objectContaining({
+          invoice_id: 'INV123',
+          include_pending_status: true,
+        }),
+        undefined
+      );
     });
   });
 
@@ -421,11 +468,32 @@ describe('Payments Resource', () => {
           invoice_id: 'INV123',
           status: 1,
           total: 100.0,
+          app_lang: 'en',
           hash_key: expect.any(String),
         }),
         undefined
       );
       expect(result).toBe(mockResponse);
+    });
+
+    it('should preserve explicit app_lang in confirmPayment', async () => {
+      const mockResponse = { status_code: 100, status_description: 'Success' };
+      mockHttpClient.post.mockResolvedValue(mockResponse);
+
+      await payments.confirmPayment({
+        invoice_id: 'INV123',
+        status: 1,
+        total: 100.0,
+        app_lang: 'tr',
+      });
+
+      expect(mockHttpClient.post).toHaveBeenCalledWith(
+        '/api/confirmPayment',
+        expect.objectContaining({
+          app_lang: 'tr',
+        }),
+        undefined
+      );
     });
 
     it('should confirm payment with options', async () => {

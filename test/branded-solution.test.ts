@@ -36,6 +36,9 @@ describe('BrandedSolution Resource', () => {
         invoice_description: 'Test product',
         name: 'John',
         surname: 'Doe',
+        bill_address1: '123 Main St',
+        bill_email: 'john@example.com',
+        bill_phone: '+905551234567',
         items: [
           {
             name: 'Test Item',
@@ -92,6 +95,9 @@ describe('BrandedSolution Resource', () => {
         invoice_description: 'Test product',
         name: 'John',
         surname: 'Doe',
+        bill_address1: '123 Main St',
+        bill_email: 'john@example.com',
+        bill_phone: '+905551234567',
         items: [
           {
             name: 'Test Item',
@@ -123,6 +129,8 @@ describe('BrandedSolution Resource', () => {
       expect(callArg.app_lang).toBe('en');
       expect(callArg.show_installment_table).toBe(true);
       expect(callArg.is_comission_from_user).toBe(1);
+      const parsedInvoice = JSON.parse(callArg.invoice);
+      expect(parsedInvoice.sale_web_hook_key).toBe('hook_key');
     });
 
     it('should include recurring and commission fields in invoice and request', async () => {
@@ -133,6 +141,9 @@ describe('BrandedSolution Resource', () => {
         invoice_description: 'Test product',
         name: 'John',
         surname: 'Doe',
+        bill_address1: '123 Main St',
+        bill_email: 'john@example.com',
+        bill_phone: '+905551234567',
         items: [
           {
             name: 'Test Item',
@@ -228,6 +239,9 @@ describe('BrandedSolution Resource', () => {
         invoice_description: 'Test product',
         name: 'John',
         surname: 'Doe',
+        bill_address1: '123 Main St',
+        bill_email: 'john@example.com',
+        bill_phone: '+905551234567',
         items: [
           {
             name: 'Test Item',
@@ -264,6 +278,9 @@ describe('BrandedSolution Resource', () => {
         ],
         name: 'John',
         surname: 'Doe',
+        bill_address1: '123 Main St',
+        bill_email: 'john@example.com',
+        bill_phone: '+905551234567',
         return_url: 'https://example.com/return',
         cancel_url: 'https://example.com/cancel',
       };
