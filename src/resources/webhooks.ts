@@ -1,5 +1,14 @@
 import { SipayResource } from './base';
 import { validateHashKey } from '../utils';
+import {
+  SipayCurrency,
+  SipayMdStatus,
+  SipayPaymentMethod,
+  SipayPaymentStatus,
+  SipayStatusCode,
+  SipayWebhookStatus,
+  SipayWebhookTransactionType,
+} from '../types';
 
 export interface SalesWebhookEvent {
   sipay_status: string;
@@ -10,15 +19,15 @@ export interface SalesWebhookEvent {
   status_description: string;
   sipay_payment_method: string;
   credit_card_no: string;
-  transaction_type: 'Auth' | 'Pre-Authorization';
-  payment_status: '0' | '1';
-  payment_method: '1' | '2' | '3'; // 1=Credit card, 2=Mobile, 3=Wallet
+  transaction_type: SipayWebhookTransactionType;
+  payment_status: SipayPaymentStatus;
+  payment_method: SipayPaymentMethod; // 1=Credit card, 2=Mobile, 3=Wallet
   error_code: string;
   error: string;
   auth_code: string;
-  status: string;
+  status: SipayWebhookStatus | (string & {});
   hash_key: string;
-  md_status: string;
+  md_status: SipayMdStatus | (string & {});
   host_reference_id: string;
   merchant_commission: string;
   user_commission: string;
@@ -35,7 +44,7 @@ export interface RecurringWebhookEvent {
   product_price: number;
   plan_code: string;
   recurring_number: string;
-  status: string;
+  status: SipayWebhookStatus | (string & {});
   attempts?: string;
   action_date: string;
 }
@@ -44,7 +53,7 @@ export interface RefundWebhookEvent {
   invoice_id: string;
   order_id: string;
   amount: number;
-  status: string;
+  status: SipayWebhookStatus | (string & {});
   ref_no: string;
   hash_key: string;
 }
@@ -56,7 +65,7 @@ export interface ChargebackWebhookEvent {
   invoice_id: string;
   order_id: string;
   amount: number;
-  currency: string;
+  currency: SipayCurrency | (string & {});
   event_date: string;
   ref_no: string;
   hash_key: string;
@@ -129,11 +138,13 @@ export class SipayWebhooks extends SipayResource {
       sipay_payment_method: String(payload.sipay_payment_method ?? ''),
       credit_card_no: String(payload.credit_card_no ?? ''),
       transaction_type:
-        (String(payload.transaction_type ?? '') as SalesWebhookEvent['transaction_type']) || 'Auth',
+        (String(payload.transaction_type ?? '') as SipayWebhookTransactionType) ||
+        SipayWebhookTransactionType.AUTH,
       payment_status:
-        (String(payload.payment_status ?? '') as SalesWebhookEvent['payment_status']) || '0',
+        (String(payload.payment_status ?? '') as SipayPaymentStatus) || SipayPaymentStatus.FAILED,
       payment_method:
-        (String(payload.payment_method ?? '') as SalesWebhookEvent['payment_method']) || '1',
+        (String(payload.payment_method ?? '') as SipayPaymentMethod) ||
+        SipayPaymentMethod.CREDIT_CARD,
       error_code: String(payload.error_code ?? ''),
       error: String(payload.error ?? ''),
       auth_code: String(payload.auth_code ?? ''),
@@ -323,21 +334,27 @@ export class SipayWebhooks extends SipayResource {
    * Check if payment was successful based on webhook data
    */
   isPaymentSuccessful(event: SalesWebhookEvent): boolean {
-    return event.payment_status === '1' && event.status_code === '100';
+    return (
+      event.payment_status === SipayPaymentStatus.SUCCESSFUL &&
+      event.status_code === String(SipayStatusCode.SUCCESSFUL)
+    );
   }
 
   /**
    * Check if payment was pre-authorized (needs confirmation)
    */
   isPaymentPreAuthorized(event: SalesWebhookEvent): boolean {
-    return event.payment_status === '1' && event.transaction_type === 'Pre-Authorization';
+    return (
+      event.payment_status === SipayPaymentStatus.SUCCESSFUL &&
+      event.transaction_type === SipayWebhookTransactionType.PRE_AUTHORIZATION
+    );
   }
 
   /**
    * Check if payment failed
    */
   isPaymentFailed(event: SalesWebhookEvent): boolean {
-    return event.payment_status === '0';
+    return event.payment_status === SipayPaymentStatus.FAILED;
   }
 
   /**
@@ -345,7 +362,7 @@ export class SipayWebhooks extends SipayResource {
    */
   getPaymentStatusDescription(event: SalesWebhookEvent): string {
     if (this.isPaymentSuccessful(event)) {
-      return event.transaction_type === 'Pre-Authorization'
+      return event.transaction_type === SipayWebhookTransactionType.PRE_AUTHORIZATION
         ? 'Payment pre-authorized successfully - requires confirmation'
         : 'Payment completed successfully';
     }

@@ -7,6 +7,12 @@ import {
   EditCardResponse,
   DeleteCardResponse,
   CardPaymentResponse,
+  SipayAppLang,
+  SipayCardProgram,
+  SipayCurrency,
+  SipayOrderType,
+  SipayRecurringCycle,
+  SipayTransactionType,
 } from '../types';
 import { generateHashKey, generatePaymentHashKey } from '../utils';
 
@@ -21,13 +27,13 @@ export interface SaveCardRequest {
   customer_email: string;
   customer_phone: number;
   hash_key: string;
-  app_lang?: string;
+  app_lang?: SipayAppLang;
 }
 
 export interface GetCardTokensRequest {
   merchant_key: string;
   customer_number: number;
-  app_lang?: string;
+  app_lang?: SipayAppLang;
 }
 
 export interface EditCardRequest {
@@ -38,7 +44,7 @@ export interface EditCardRequest {
   expiry_month: number;
   expiry_year: number;
   hash_key: string;
-  app_lang?: string;
+  app_lang?: SipayAppLang;
 }
 
 export interface DeleteCardRequest {
@@ -46,7 +52,7 @@ export interface DeleteCardRequest {
   customer_number: number;
   card_token: string;
   hash_key: string;
-  app_lang?: string;
+  app_lang?: SipayAppLang;
 }
 
 /** @see https://apidocs.sipay.com.tr/3d-secure-pay-by-card-token-26908142e0.md */
@@ -57,7 +63,7 @@ export interface PayByCardTokenRequest {
   customer_email: string;
   customer_phone: string;
   customer_name: string;
-  currency_code: string;
+  currency_code: SipayCurrency | (string & {});
   installments_number?: number;
   invoice_id: string;
   invoice_description: string;
@@ -81,23 +87,23 @@ export interface PayByCardTokenRequest {
   bill_email: string;
   bill_phone: string;
   /** Optional; valid values: WORLD, BONUS, MAXIMUM, BANKKART_COMBO, PARAF, AXESS, ADVANT, CARD_FNS */
-  card_program?: string;
+  card_program?: SipayCardProgram | (string & {});
   /** Required for Non-Secure payByCardTokenNonSecure; optional for 3D Secure */
   ip?: string;
-  transaction_type?: string;
+  transaction_type?: SipayTransactionType;
   sale_web_hook_key?: string;
   // Recurring parameters
   /** Required for Non-Secure; if set to 1, recurring_payment_number/cycle/interval/web_hook_key become required */
-  order_type?: number;
+  order_type?: SipayOrderType;
   /** Required when order_type = 1 */
   recurring_payment_number?: number;
   /** Required when order_type = 1. Values: D (Day), M (Month), Y (Year) */
-  recurring_payment_cycle?: string;
+  recurring_payment_cycle?: SipayRecurringCycle;
   /** Required when order_type = 1 */
   recurring_payment_interval?: string;
   /** Required when order_type = 1 */
   recurring_web_hook_key?: string;
-  app_lang?: string;
+  app_lang?: SipayAppLang;
 }
 
 export class Cards extends SipayResource {

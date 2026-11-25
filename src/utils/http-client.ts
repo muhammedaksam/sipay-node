@@ -3,6 +3,7 @@ import {
   SipayConfig,
   SipayApiResponse,
   SipayError,
+  SipayIntegrationType,
   RequestOptions,
   TokenResponse,
   getStatusCategory,
@@ -17,7 +18,7 @@ export class SipayHttpClient {
   private client: AxiosInstance;
   private config: SipayConfig;
   private token?: string;
-  private is3D?: number;
+  private is3D?: SipayIntegrationType;
 
   constructor(config: SipayConfig) {
     this.config = {
@@ -200,7 +201,7 @@ export class SipayHttpClient {
    * Get the is_3d value from the last authentication
    * 0 = Non Secure only, 1 = Non Secure or 3D, 2 = 3D only, 4 = Branded
    */
-  getIs3D(): number | undefined {
+  getIs3D(): SipayIntegrationType | undefined {
     return this.is3D;
   }
 }

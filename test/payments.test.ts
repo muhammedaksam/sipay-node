@@ -6,6 +6,8 @@ import {
   GetPosRequest,
   OrderStatusRequest,
   RefundRequest,
+  SipayConfirmStatus,
+  SipayOrderType,
 } from '../src/types';
 
 // Mock the HTTP client
@@ -35,7 +37,7 @@ describe('Payments Resource', () => {
     cancel_url: 'https://example.com/cancel',
     return_url: 'https://example.com/return',
     ip: '127.0.0.1',
-    order_type: 1,
+    order_type: SipayOrderType.RECURRING,
     items: [
       {
         name: 'Test Item',
@@ -65,7 +67,7 @@ describe('Payments Resource', () => {
     installments_number: 1,
     cancel_url: 'https://example.com/cancel',
     return_url: 'https://example.com/return',
-    order_type: 1,
+    order_type: SipayOrderType.RECURRING,
     bill_address1: '123 Main St',
     bill_email: 'test@example.com',
     bill_phone: '+901234567890',
@@ -448,7 +450,7 @@ describe('Payments Resource', () => {
     it('should confirm payment with hash key generation', async () => {
       const confirmData = {
         invoice_id: 'INV123',
-        status: 1, // 1 = approved
+        status: SipayConfirmStatus.CONFIRMED, // 1 = approved
         total: 100.0,
       };
 
@@ -499,7 +501,7 @@ describe('Payments Resource', () => {
     it('should confirm payment with options', async () => {
       const confirmData = {
         invoice_id: 'INV123',
-        status: 2, // 2 = abort
+        status: SipayConfirmStatus.CANCELED, // 2 = abort
         total: 100.0,
       };
 

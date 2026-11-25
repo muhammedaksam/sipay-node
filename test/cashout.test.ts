@@ -1,4 +1,5 @@
 import { Cashout } from '../src/resources/cashout';
+import { SipayCashoutType } from '../src/types';
 import { SipayHttpClient } from '../src/utils/http-client';
 
 // Mock the HTTP client
@@ -35,7 +36,7 @@ describe('Cashout Resource', () => {
       mockHttpClient.post.mockResolvedValue(mockResponse);
 
       const cashoutData = {
-        cashout_type: 1,
+        cashout_type: SipayCashoutType.TO_BANK,
         cashout_data: [
           {
             unique_id: 'UNIQUE123',
@@ -70,7 +71,7 @@ describe('Cashout Resource', () => {
       mockHttpClient.post.mockResolvedValue(mockResponse);
 
       const cashoutData = {
-        cashout_type: 1,
+        cashout_type: SipayCashoutType.TO_BANK,
         cashout_data: [
           {
             unique_id: 'UNIQUE123',
@@ -112,7 +113,7 @@ describe('Cashout Resource', () => {
       mockHttpClient.post.mockResolvedValue(mockResponse);
 
       const cashoutData = {
-        cashout_type: 1,
+        cashout_type: SipayCashoutType.TO_BANK,
         cashout_data: [
           {
             unique_id: 'UNIQUE125',
@@ -140,7 +141,7 @@ describe('Cashout Resource', () => {
       mockHttpClient.post.mockRejectedValue(error);
 
       const cashoutData = {
-        cashout_type: 1,
+        cashout_type: SipayCashoutType.TO_BANK,
         cashout_data: [
           {
             unique_id: 'UNIQUE123',

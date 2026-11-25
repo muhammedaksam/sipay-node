@@ -8,6 +8,7 @@ import {
   SettlementsResponse,
   TransactionApprovalResponse,
   SubMerchantPayoutResponse,
+  SipayCurrency,
 } from '../types';
 import { generatePaymentHashKey } from '../utils';
 
@@ -18,7 +19,7 @@ export interface MarketplaceSaleRequest {
   expiry_month: string;
   expiry_year: string;
   cvv?: string;
-  currency_code: string;
+  currency_code: SipayCurrency | (string & {});
   installments_number?: number;
   invoice_id: string;
   invoice_description: string;
@@ -67,7 +68,7 @@ export interface MarketplacePayoutRequest {
   merchant_key: string;
   sub_merchant_key: string;
   amount: number;
-  currency_code: string;
+  currency_code: SipayCurrency | (string & {});
   description?: string;
 }
 

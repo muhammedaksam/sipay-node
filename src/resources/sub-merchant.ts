@@ -11,6 +11,7 @@ import {
   SubMerchantPFViewResponse,
   SubMerchantPFListResponse,
   SubMerchantPayoutResponse,
+  SipayCurrency,
 } from '../types';
 import { generateHashKey } from '../utils';
 
@@ -33,11 +34,11 @@ export interface AddSubMerchantRequest {
   settlement_id: number;
   auto_approval_days?: number;
   automatic_withdrawal_configuration?: {
-    currency_code: string;
+    currency_code: SipayCurrency | (string & {});
     auto_withdrawal_settlement_id: number;
     auto_withdrawal_remain_amount: number;
   };
-  currency_code: string;
+  currency_code: SipayCurrency | (string & {});
   auto_withdrawal_settlement_id: number;
   auto_withdrawal_remain_amount: number;
 }
@@ -62,11 +63,11 @@ export interface EditSubMerchantRequest {
   settlement_id?: number;
   auto_approval_days?: number;
   automatic_withdrawal_configuration?: {
-    currency_code: string;
+    currency_code: SipayCurrency | (string & {});
     auto_withdrawal_settlement_id: number;
     auto_withdrawal_remain_amount: number;
   };
-  currency_code?: string;
+  currency_code?: SipayCurrency | (string & {});
   auto_withdrawal_settlement_id?: number;
   auto_withdrawal_remain_amount?: number;
 }
@@ -112,7 +113,7 @@ export interface PayoutRequest {
   payout_data: Array<{
     sub_merchant_id: string;
     amount: string;
-    currency_code: string;
+    currency_code: SipayCurrency | (string & {});
   }>;
   hash_key: string;
 }

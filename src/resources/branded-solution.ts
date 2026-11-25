@@ -1,5 +1,14 @@
 import { SipayResource } from './base';
-import { BrandedSolutionRequest, PaymentLinkResponse, RequestOptions } from '../types';
+import {
+  BrandedSolutionRequest,
+  PaymentLinkResponse,
+  RequestOptions,
+  SipayAppLang,
+  SipayCurrency,
+  SipayOrderType,
+  SipayRecurringCycle,
+  SipayResponseMethod,
+} from '../types';
 import { formatAmount } from '../utils';
 
 export interface InvoicePayload {
@@ -11,7 +20,7 @@ export interface InvoicePayload {
   coupon?: string | null;
   return_url?: string;
   cancel_url?: string;
-  response_method?: string;
+  response_method?: SipayResponseMethod | (string & {});
   sale_web_hook_key?: string;
   is_comission_from_user?: number;
   commission_for_installment?: string;
@@ -28,17 +37,17 @@ export interface InvoicePayload {
 export interface PaymentLinkRequestBody {
   merchant_key: string;
   invoice: string;
-  currency_code: string;
+  currency_code: SipayCurrency | (string & {});
   name: string;
   surname: string;
   max_installment?: number;
   sale_web_hook_key?: string;
-  order_type?: number;
+  order_type?: SipayOrderType;
   recurring_payment_number?: number;
-  recurring_payment_cycle?: string;
+  recurring_payment_cycle?: SipayRecurringCycle;
   recurring_payment_interval?: string;
   recurring_web_hook_key?: string;
-  app_lang?: string;
+  app_lang?: SipayAppLang;
   is_comission_from_user?: number;
   commission_for_installment?: string;
   show_installment_table?: boolean;

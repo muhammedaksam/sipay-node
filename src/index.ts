@@ -1,5 +1,5 @@
 import { SipayHttpClient } from './utils/http-client';
-import { SipayConfig } from './types';
+import { SipayConfig, SipayIntegrationType } from './types';
 import { Payments } from './resources/payments';
 import { Recurring } from './resources/recurring';
 import { BrandedSolution } from './resources/branded-solution';
@@ -67,7 +67,7 @@ export class Sipay {
    * Get the is_3d value from the last authentication
    * 0 = Non Secure only, 1 = Non Secure or 3D, 2 = 3D only, 4 = Branded
    */
-  getIs3D(): number | undefined {
+  getIs3D(): SipayIntegrationType | undefined {
     return this.client.getIs3D();
   }
 }

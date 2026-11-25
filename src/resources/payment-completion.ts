@@ -1,5 +1,11 @@
 import { SipayResource } from './base';
-import { SipayApiResponse, RequestOptions, PaymentCompleteResponse } from '../types';
+import {
+  SipayApiResponse,
+  RequestOptions,
+  PaymentCompleteResponse,
+  SipayAppLang,
+  SipayPaymentCompletionStatus,
+} from '../types';
 import * as crypto from 'crypto';
 const { createHash, createCipheriv } = crypto;
 
@@ -7,9 +13,9 @@ export interface PaymentCompleteRequest {
   merchant_key: string;
   invoice_id: string;
   order_id: string;
-  status: 'complete' | 'cancel';
+  status: SipayPaymentCompletionStatus;
   hash_key: string;
-  app_lang?: string;
+  app_lang?: SipayAppLang;
 }
 
 export class PaymentCompletion extends SipayResource {
@@ -25,7 +31,7 @@ export class PaymentCompletion extends SipayResource {
 
     // Auto-inject app_lang from config if not provided (API requires it)
     if (!data.app_lang) {
-      data.app_lang = this.client['config'].appLang || 'en';
+      data.app_lang = this.client['config'].appLang || SipayAppLang.EN;
     }
 
     // Generate hash key using the payment completion format

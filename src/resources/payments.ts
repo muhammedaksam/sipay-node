@@ -17,6 +17,7 @@ import {
   PaymentStatusResponse,
   RefundResponse,
   ConfirmPaymentResponse,
+  SipayAppLang,
 } from '../types';
 import {
   generatePaymentHashKey,
@@ -129,7 +130,7 @@ export class Payments extends SipayResource {
 
     // Auto-inject app_lang from config if not provided (API requires it)
     if (!data.app_lang) {
-      data.app_lang = this.client['config'].appLang || 'en';
+      data.app_lang = this.client['config'].appLang || SipayAppLang.EN;
     }
 
     // Generate hash key for payment confirmation
@@ -175,7 +176,10 @@ export class Payments extends SipayResource {
    * Get merchant active installments
    * POST /api/installments
    */
-  async getInstallments(appLang?: string, options?: RequestOptions): Promise<InstallmentsResponse> {
+  async getInstallments(
+    appLang?: SipayAppLang,
+    options?: RequestOptions
+  ): Promise<InstallmentsResponse> {
     const data: Record<string, any> = { merchant_key: this.client['config'].merchantKey };
     if (appLang) {
       data.app_lang = appLang;

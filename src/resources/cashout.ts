@@ -1,24 +1,31 @@
 import { SipayResource } from './base';
-import { SipayApiResponse, RequestOptions, CashoutResponse } from '../types';
+import {
+  SipayApiResponse,
+  RequestOptions,
+  CashoutResponse,
+  SipayAppLang,
+  SipayCashoutType,
+  SipayCurrency,
+} from '../types';
 import { generateHashKey } from '../utils';
 
 export interface CashoutToBankRequest {
   merchant_key: string;
   hash_key: string;
-  cashout_type: number; // Must be 1 for cashout to bank
+  cashout_type: SipayCashoutType; // Must be 1 for cashout to bank
   cashout_data: Array<{
     unique_id: string;
     name_surname: string;
     iban: string;
     name_of_bank?: string;
     amount: number | string;
-    currency: string;
+    currency: SipayCurrency | (string & {});
     id_tc_kn: string;
     gsm_number: string;
     description?: string;
   }>;
   reverse_web_hook_key?: string;
-  app_lang?: string;
+  app_lang?: SipayAppLang;
 }
 
 export class Cashout extends SipayResource {

@@ -1,4 +1,5 @@
 import * as crypto from 'crypto';
+import { SipayConfirmStatus, SipayCurrency } from '../types/enums';
 const { createHash, createCipheriv, createDecipheriv } = crypto;
 
 /**
@@ -122,7 +123,7 @@ export function generateStatusHashKey(
 export function generateConfirmPaymentHashKey(
   merchantKey: string,
   invoiceId: string,
-  status: number,
+  status: SipayConfirmStatus,
   apiSecret: string
 ): string {
   const parts = [merchantKey, invoiceId, status.toString()];
@@ -248,7 +249,7 @@ export function validatePaymentData(data: any): string[] {
   }
 
   // Validate currency
-  const validCurrencies = ['TRY', 'USD', 'EUR'];
+  const validCurrencies: string[] = [SipayCurrency.TRY, SipayCurrency.USD, SipayCurrency.EUR];
   if (data.currency_code && !validCurrencies.includes(data.currency_code)) {
     errors.push('Invalid currency code');
   }

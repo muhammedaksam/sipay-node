@@ -1,3 +1,20 @@
+import type {
+  SipayAppLang,
+  SipayCardProgram,
+  SipayCommissionBy,
+  SipayConfirmStatus,
+  SipayCurrency,
+  SipayIntegrationType,
+  SipayMdStatus,
+  SipayOrderType,
+  SipayPaymentCompletedBy,
+  SipayRecurringCycle,
+  SipayRecurringStatus,
+  SipayResponseMethod,
+  SipayTransactionStatus,
+  SipayTransactionType,
+} from './enums';
+
 // Sipay API Types
 export interface SipayConfig {
   appId: string;
@@ -5,7 +22,7 @@ export interface SipayConfig {
   merchantKey: string;
   baseUrl?: string;
   timeout?: number;
-  appLang?: 'en' | 'tr';
+  appLang?: SipayAppLang;
 }
 
 export interface SipayApiResponse<T = any> {
@@ -20,7 +37,7 @@ export interface SipayApiResponse<T = any> {
 
 export interface TokenResponse {
   token: string;
-  is_3d: number;
+  is_3d: SipayIntegrationType;
   expires_at: string;
 }
 
@@ -36,17 +53,17 @@ export interface BasePaymentRequest {
   invoice_id: string;
   invoice_description: string;
   total: number;
-  currency_code: string;
+  currency_code: SipayCurrency | (string & {});
   installments_number?: number;
   items: PaymentItem[];
   name: string;
   surname: string;
   hash_key?: string;
   // Transaction type and completion
-  transaction_type?: 'Auth' | 'PreAuth';
-  payment_completed_by?: 'merchant' | 'app';
+  transaction_type?: SipayTransactionType;
+  payment_completed_by?: SipayPaymentCompletedBy;
   // Commission parameters
-  commission_by?: string;
+  commission_by?: SipayCommissionBy;
   is_commission_from_user?: boolean;
   // Billing address fields
   bill_address1?: string;
@@ -58,17 +75,17 @@ export interface BasePaymentRequest {
   bill_email?: string;
   bill_phone?: string;
   // Card and payment options
-  card_program?: string;
+  card_program?: SipayCardProgram | (string & {});
   ip?: string;
   metadata?: string;
   sale_web_hook_key?: string;
-  app_lang?: string;
+  app_lang?: SipayAppLang;
   // Insurance payment fields
   vpos_type?: string;
   identity_number?: string;
   // Recurring payment parameters (optional)
   recurring_payment_number?: number;
-  recurring_payment_cycle?: string; // D = Day, M = Month, Y = Year
+  recurring_payment_cycle?: SipayRecurringCycle; // D = Day, M = Month, Y = Year
   recurring_payment_interval?: string;
   recurring_web_hook_key?: string;
 }
@@ -88,7 +105,7 @@ export interface Payment2DRequest extends BasePaymentRequest, CreditCardInfo {
   ip: string;
   cancel_url?: string;
   return_url?: string;
-  order_type?: number;
+  order_type?: SipayOrderType;
 }
 
 export interface Payment3DRequest extends BasePaymentRequest, CreditCardInfo {
@@ -98,8 +115,8 @@ export interface Payment3DRequest extends BasePaymentRequest, CreditCardInfo {
   bill_email: string;
   bill_phone: string;
   ip: string;
-  order_type?: number;
-  response_method?: string;
+  order_type?: SipayOrderType;
+  response_method?: SipayResponseMethod | (string & {});
   // Agriculture payment fields
   maturity_period?: number;
   payment_frequency?: number;
@@ -108,12 +125,12 @@ export interface Payment3DRequest extends BasePaymentRequest, CreditCardInfo {
 export interface GetPosRequest {
   credit_card: string;
   amount: number;
-  currency_code: string;
+  currency_code: SipayCurrency | (string & {});
   merchant_key: string;
-  commission_by?: 'merchant' | 'user';
+  commission_by?: SipayCommissionBy;
   is_recurring?: boolean | 0 | 1;
   is_2d?: boolean | 0 | 1;
-  app_lang?: string;
+  app_lang?: SipayAppLang;
 }
 
 export interface PosInfo {
@@ -142,7 +159,7 @@ export interface OrderStatusRequest {
   include_pending_status?: boolean;
   show_refund_info?: 'Y';
   hash_key?: string;
-  app_lang?: string;
+  app_lang?: SipayAppLang;
 }
 
 export interface RefundRequest {
@@ -155,16 +172,16 @@ export interface RefundRequest {
   /** Unique refund transaction ID (optional; API accepts empty string) */
   refund_transaction_id?: string;
   refund_web_hook_key?: string;
-  app_lang?: string;
+  app_lang?: SipayAppLang;
 }
 
 export interface ConfirmPaymentRequest {
   invoice_id: string;
   merchant_key: string;
-  status: number; // 1 = confirmed, 2 = canceled
+  status: SipayConfirmStatus; // 1 = confirmed, 2 = canceled
   hash_key: string;
   total: number;
-  app_lang?: string;
+  app_lang?: SipayAppLang;
 }
 
 export interface InstallmentsResponse {
@@ -201,7 +218,7 @@ export interface Payment3DResponse {
   payment_reason_code_detail?: string | null;
   status?: string;
   hash_key: string;
-  md_status?: string;
+  md_status?: SipayMdStatus | (string & {});
   original_bank_error_code?: string | null;
   original_bank_error_description?: string | null;
   host_reference_id?: string;
@@ -265,7 +282,7 @@ export interface PaymentLinkResponse {
 export interface PaymentStatusResponse {
   status_code: number;
   status_description: string;
-  transaction_status: string;
+  transaction_status: SipayTransactionStatus | (string & {});
   order_id: string;
   transaction_id: string;
   message: string;
@@ -308,18 +325,18 @@ export interface RefundResponse {
 export interface GetTokenRequest {
   app_id: string;
   app_secret: string;
-  app_lang?: string;
+  app_lang?: SipayAppLang;
 }
 
 export interface CommissionRequest {
-  currency_code: string;
-  commission_by?: 'merchant' | 'user';
-  app_lang?: string;
+  currency_code: SipayCurrency | (string & {});
+  commission_by?: SipayCommissionBy;
+  app_lang?: SipayAppLang;
 }
 
 export interface BrandedSolutionRequest {
   merchant_key: string;
-  currency_code: string;
+  currency_code: SipayCurrency | (string & {});
   name: string;
   surname: string;
   // Invoice details (serialized to JSON internally)
@@ -331,7 +348,7 @@ export interface BrandedSolutionRequest {
   coupon?: string | null;
   return_url?: string;
   cancel_url?: string;
-  response_method?: string;
+  response_method?: SipayResponseMethod | (string & {});
   // Billing address
   bill_address1: string;
   bill_address2?: string;
@@ -345,16 +362,16 @@ export interface BrandedSolutionRequest {
   max_installment?: number;
   sale_web_hook_key?: string;
   // Recurring parameters
-  order_type?: number;
+  order_type?: SipayOrderType;
   recurring_payment_number?: number;
-  recurring_payment_cycle?: string;
+  recurring_payment_cycle?: SipayRecurringCycle;
   recurring_payment_interval?: string;
   recurring_web_hook_key?: string;
   // Commission parameters
   is_comission_from_user?: number;
   commission_for_installment?: string;
   show_installment_table?: boolean;
-  app_lang?: string;
+  app_lang?: SipayAppLang;
 }
 
 export interface BrandedStatusRequest {
@@ -430,7 +447,7 @@ export interface PaymentCompleteResponse {
 export interface ConfirmPaymentResponse {
   status_code: number;
   status_description: string;
-  transaction_status: string;
+  transaction_status: SipayTransactionStatus | (string & {});
   order_id: string;
   invoice_id: string;
 }
@@ -672,7 +689,7 @@ export interface RecurringQueryRequest {
   merchant_key: string;
   plan_code: string;
   recurring_number: number;
-  app_lang?: string;
+  app_lang?: SipayAppLang;
 }
 
 export interface RecurringQueryResponse {
@@ -725,7 +742,7 @@ export interface RecurringPlanUpdateRequest {
   merchant_key: string;
   plan_code: string;
   recurring_amount: string;
-  recurring_status: string;
+  recurring_status: SipayRecurringStatus | (string & {});
   recurring_payment_number: string;
 }
 
@@ -734,5 +751,6 @@ export interface RecurringPlanUpdateResponse {
   message: string;
 }
 
-// Export status codes
+// Export enums and status codes
+export * from './enums';
 export * from './status-codes';
